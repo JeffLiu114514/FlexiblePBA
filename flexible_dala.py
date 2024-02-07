@@ -30,6 +30,7 @@ def level_inference(BER):
         levels.append([Rlow, Rhigh, tmin, tmax])
     return longest_non_overlap(levels)
 
+
 def longest_non_overlap(levels):
     # this is a greedy algorithm
     # levels is a list of levels, each level is a list of [Rlow, Rhigh, tmin, tmax]
@@ -53,6 +54,7 @@ def getReadRange(vals, BER):
     num_discard = int(BER * len(vals) / 2)
     return vals[num_discard], vals[-num_discard] + 1
 
+
 def refine(level_alloc):
     '''
     close the gap between adjacent read ranges
@@ -71,6 +73,7 @@ def refine(level_alloc):
     level_alloc[len(level_alloc)-1][1] = 64
     return level_alloc
 
+
 def half(level_alloc):
     assert len(level_alloc) % 2 == 0
     res = []
@@ -85,7 +88,6 @@ def half(level_alloc):
                     int((level_alloc[i*2][3] + level_alloc[i*2+1][3]) / 2)])
     assert len(res) == len(level_alloc) / 2
     return res
-
 
 
 def minimal_BER(specified_levels, eps, low_BER = 0, high_BER = 1, double=False):
