@@ -23,8 +23,8 @@ def level_inference(BER):
     for tmin in range(0, 60):
         tmax = tmin + 4
         RelaxDistr = distributions[(tmin, tmax)]
-        if DEBUG:
-            print(len(RelaxDistr),int(BER * len(RelaxDistr) / 2))
+        # if DEBUG:
+        #     print(len(RelaxDistr),int(BER * len(RelaxDistr) / 2))
         Rlow, Rhigh = getReadRange(RelaxDistr, BER)
         # assert Rlow <= tmin and tmax <= Rhigh, (Rlow, Rhigh, tmin, tmax)
         levels.append([Rlow, Rhigh, tmin, tmax])
@@ -130,7 +130,7 @@ def dump_to_json(level_alloc):
         bpc['level_settings'][i]["adc_upper_read_ref_lvl"] = level_alloc[i][1]
         bpc['level_settings'][i]["adc_lower_write_ref_lvl"] = level_alloc[i][2]
         bpc['level_settings'][i]["adc_upper_write_ref_lvl"] = level_alloc[i][3]
-    write_to_json(bpc, f"settings/{bits_per_cell}bpc_dala_{date}.json")
+    write_to_json(bpc, f"tests/{bits_per_cell}bpc_dala_{date}.json")
 
 
 if __name__ == "__main__":

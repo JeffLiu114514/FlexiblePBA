@@ -1,8 +1,10 @@
 import json
 import pprint
+import bisect
 
 date="Feb6"
-
+MAX_RES = 64
+PRINT_ANCHOR = False
 DEBUG = True
 
 distributions = {}
@@ -15,44 +17,89 @@ def init_model():
             distributions[(tmin, tmax)] = distr
     # print(distributions)
 
+def find_leftmost(levels):
+    sorted_levels = sorted(levels, key=lambda x: x[1])
+    return sorted_levels[0], sorted_levels[0][1]
+    
+def update(R, anchor, xl, xh, BER):
+    left_perc = bisect.bisect_right(R, anchor) / len(R)
+    if left_perc > BER:
+        return xl, 2*MAX_RES
+    num_discard = int((BER - left_perc) * len(R))
+    if num_discard == 0:
+        return anchor, R[-1] + 1
+    return anchor, R[-num_discard] + 1
+    
 
-def level_inference(BER):
+def minimal_BER(specified_levels, eps, low_BER = 0, high_BER = 1, double=False):
+    # rationale for double: for 4 levels with insufficient data to characterize the error
+    #   we need to allocate 8 levels then half the levels
+    if double:
+        specified_levels = specified_levels * 2
+    while high_BER - low_BER > eps:
+        cur_BER = (low_BER + high_BER) / 2
+        
+        # flexible greedy algorithm
+        result_level = []
+        cur_levels = candidate_gen(cur_BER)
+        confirmed_level, anchor = find_leftmost(cur_levels)
+        if PRINT_ANCHOR:
+            print("confirmed level and anchor:", confirmed_level[0], confirmed_level[1], anchor)
+        result_level.append([confirmed_level[0], confirmed_level[1], confirmed_level[3], confirmed_level[4]])
+        while anchor <= MAX_RES+1:
+            temp_levels = []
+            for cur_level in cur_levels:
+                Rlow, Rhigh, RelaxDistr, tmin, tmax = cur_level
+                if Rlow < anchor:
+                    Rlow, Rhigh = update(RelaxDistr, anchor, Rlow, Rhigh, cur_BER)
+                if Rlow >= anchor:
+                    temp_levels.append([Rlow, Rhigh, RelaxDistr, tmin, tmax])
+            if len(temp_levels) == 0:
+                break
+            confirmed_level, anchor = find_leftmost(temp_levels)
+            if PRINT_ANCHOR:
+                print("confirmed level and anchor:", confirmed_level[0], confirmed_level[1],confirmed_level[3],confirmed_level[4], anchor)
+
+            result_level.append([confirmed_level[0], confirmed_level[1], confirmed_level[3], confirmed_level[4]])
+            cur_levels = temp_levels   
+        
+        cur_levels = result_level
+        print(len(cur_levels), cur_BER)
+        if len(cur_levels) < specified_levels: # the precision requirement is too strict to be met
+            low_BER = cur_BER # make next BER bigger
+        elif len(cur_levels) > specified_levels:
+            high_BER = cur_BER
+        else:
+            high_BER = cur_BER
+            best_level, best_BER = cur_levels, cur_BER
+    if double:
+        best_level = half(best_level)
+    refined = refine(best_level)
+    print(refined, best_BER)
+    assert len(refined) == specified_levels / 2 if double else specified_levels
+    return refined
+
+def candidate_gen(BER):
     if DEBUG:
         print(BER, "Started")
     levels = []
     for tmin in range(0, 60):
         tmax = tmin + 4
         RelaxDistr = distributions[(tmin, tmax)]
-        if DEBUG:
-            print(len(RelaxDistr),int(BER * len(RelaxDistr) / 2))
+        # if DEBUG:
+        #     print(len(RelaxDistr),int(BER * len(RelaxDistr) / 2))
         Rlow, Rhigh = getReadRange(RelaxDistr, BER)
         # assert Rlow <= tmin and tmax <= Rhigh, (Rlow, Rhigh, tmin, tmax)
-        levels.append([Rlow, Rhigh, tmin, tmax])
-    return longest_non_overlap(levels)
-
-
-def longest_non_overlap(levels):
-    # this is a greedy algorithm
-    # levels is a list of levels, each level is a list of [Rlow, Rhigh, tmin, tmax]
-    res = []
-    # first sort by Rhigh
-    sorted_levels = sorted(levels, key=lambda x: x[1])
-    res.append(sorted_levels[0])
-    cur = sorted_levels[0]
-    for i in range(1, len(sorted_levels)):
-        nxt = sorted_levels[i]
-        # the next level's Rlow does not overlap with the current level's Rhigh
-        # the next level's tmin (write ranges) does not overlap with current level's tmax
-        if nxt[0] >= cur[1] and nxt[2] >= cur[3]:
-            res.append(nxt)
-            cur = nxt
-    return res
+        levels.append([Rlow, Rhigh, RelaxDistr, tmin, tmax])
+    return levels
 
 
 def getReadRange(vals, BER):
     # The read range [Rmin, Rmax) -- any point within [Rmin, Rmax) are within this level
-    num_discard = int(BER * len(vals) / 2)
-    return vals[num_discard], vals[-num_discard] + 1
+    if int(BER * len(vals)) == 0:
+        return vals[0], vals[-1] + 1
+    num_discard = int(BER * len(vals))
+    return vals[0], vals[-num_discard] + 1
 
 
 def refine(level_alloc):
@@ -90,28 +137,7 @@ def half(level_alloc):
     return res
 
 
-def minimal_BER(specified_levels, eps, low_BER = 0, high_BER = 1, double=False):
-    # rationale for double: for 4 levels with insufficient data to characterize the error
-    #   we need to allocate 8 levels then half the levels
-    if double:
-        specified_levels = specified_levels * 2
-    while high_BER - low_BER > eps:
-        cur_BER = (low_BER + high_BER) / 2
-        cur_levels = level_inference(cur_BER)
-        print(len(cur_levels), cur_BER)
-        if len(cur_levels) < specified_levels: # the precision requirement is too strict to be met
-            low_BER = cur_BER # make next BER bigger
-        elif len(cur_levels) > specified_levels:
-            high_BER = cur_BER
-        else:
-            high_BER = cur_BER
-            best_level, best_BER = cur_levels, cur_BER
-    if double:
-        best_level = half(best_level)
-    refined = refine(best_level)
-    print(refined, best_BER)
-    assert len(refined) == specified_levels / 2 if double else specified_levels
-    return refined
+
 
 def read_from_json(filename):
     return json.load(open(filename))
@@ -132,7 +158,7 @@ def dump_to_json(level_alloc):
         bpc['level_settings'][i]["adc_upper_read_ref_lvl"] = level_alloc[i][1]
         bpc['level_settings'][i]["adc_lower_write_ref_lvl"] = level_alloc[i][2]
         bpc['level_settings'][i]["adc_upper_write_ref_lvl"] = level_alloc[i][3]
-    write_to_json(bpc, f"settings/{bits_per_cell}bpc_dala_{date}.json")
+    write_to_json(bpc, f"tests/{bits_per_cell}bpc_flexible_dala_{date}.json")
 
 
 if __name__ == "__main__":
