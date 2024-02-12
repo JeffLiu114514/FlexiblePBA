@@ -2,13 +2,13 @@ import json
 import pprint
 import bisect
 
-date="Feb6"
+date="Feb12"
 MAX_RES = 64
 PRINT_ANCHOR = False
 DEBUG = True
 
-distributions = {}
 def init_model():
+    distributions = {}
     with open("model/retention1s.csv", "r") as f:
         lines = f.readlines()
         for line in lines:
@@ -16,13 +16,14 @@ def init_model():
             tmin, tmax, distr = int(tokens[0]), int(tokens[1]), list(map(int, tokens[2:]))
             distributions[(tmin, tmax)] = distr
     # print(distributions)
+    return distributions
 
 def find_leftmost(levels):
     sorted_levels = sorted(levels, key=lambda x: x[1])
     return sorted_levels[0], sorted_levels[0][1]
     
 def update(R, anchor, xl, xh, BER):
-    left_perc = bisect.bisect_right(R, anchor) / len(R)
+    left_perc = bisect.bisect_left(R, anchor) / len(R)
     if left_perc > BER:
         return xl, 2*MAX_RES
     num_discard = int((BER - left_perc) * len(R))
@@ -31,7 +32,7 @@ def update(R, anchor, xl, xh, BER):
     return anchor, R[-num_discard] + 1
     
 
-def minimal_BER(specified_levels, eps, low_BER = 0, high_BER = 1, double=False):
+def minimal_BER(specified_levels, eps, distributions, low_BER = 0, high_BER = 1, double=False):
     # rationale for double: for 4 levels with insufficient data to characterize the error
     #   we need to allocate 8 levels then half the levels
     if double:
@@ -41,7 +42,7 @@ def minimal_BER(specified_levels, eps, low_BER = 0, high_BER = 1, double=False):
         
         # flexible greedy algorithm
         result_level = []
-        cur_levels = candidate_gen(cur_BER)
+        cur_levels = candidate_gen(cur_BER, distributions)
         confirmed_level, anchor = find_leftmost(cur_levels)
         if PRINT_ANCHOR:
             print("confirmed level and anchor:", confirmed_level[0], confirmed_level[1], anchor)
@@ -77,9 +78,9 @@ def minimal_BER(specified_levels, eps, low_BER = 0, high_BER = 1, double=False):
     refined = refine(best_level)
     print(refined, best_BER)
     assert len(refined) == specified_levels / 2 if double else specified_levels
-    return refined
+    return refined, best_BER
 
-def candidate_gen(BER):
+def candidate_gen(BER, distributions):
     if DEBUG:
         print(BER, "Started")
     levels = []
@@ -152,6 +153,10 @@ def dump_to_json(level_alloc):
         bits_per_cell = 3
     elif len(level_alloc) == 4:
         bits_per_cell = 2
+    elif len(level_alloc) == 2:
+        bits_per_cell = 1
+    elif len(level_alloc) == 32:
+        bits_per_cell = 5
     bpc = read_from_json(f"settings/{bits_per_cell}bpc.json")
     for i in range(0, len(level_alloc)):
         # [Rlow, Rhigh, tmin, tmax]
@@ -162,7 +167,9 @@ def dump_to_json(level_alloc):
 
 
 if __name__ == "__main__":
-    init_model()
-    dump_to_json(minimal_BER(4, 1e-3, 0, 1, True))
-    dump_to_json(minimal_BER(8, 1e-3))
+    distributions = init_model()
+    refined, best_BER = minimal_BER(4, 1e-3, distributions, 0, 1, True)
+    dump_to_json(refined)
+    refined, best_BER = minimal_BER(8, 1e-3, distributions)
+    dump_to_json(refined)
     # dump_to_json(minimal_BER(16, 1e-10))

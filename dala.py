@@ -5,8 +5,9 @@ date="Feb6"
 
 DEBUG = True
 
-distributions = {}
+
 def init_model():
+    distributions = {}
     with open("model/retention1s.csv", "r") as f:
         lines = f.readlines()
         for line in lines:
@@ -14,9 +15,9 @@ def init_model():
             tmin, tmax, distr = int(tokens[0]), int(tokens[1]), list(map(int, tokens[2:]))
             distributions[(tmin, tmax)] = distr
     # print(distributions)
+    return distributions
 
-
-def level_inference(BER):
+def level_inference(BER, distributions):
     if DEBUG:
         print(BER, "Started")
     levels = []
@@ -88,14 +89,14 @@ def half(level_alloc):
 
 
 
-def minimal_BER(specified_levels, eps, low_BER = 0, high_BER = 1, double=False):
+def minimal_BER(specified_levels, eps, distributions, low_BER = 0, high_BER = 1, double=False):
     # rationale for double: for 4 levels with insufficient data to characterize the error
     #   we need to allocate 8 levels then half the levels
     if double:
         specified_levels = specified_levels * 2
     while high_BER - low_BER > eps:
         cur_BER = (low_BER + high_BER) / 2
-        cur_levels = level_inference(cur_BER)
+        cur_levels = level_inference(cur_BER, distributions)
         print(len(cur_levels), cur_BER)
         if len(cur_levels) < specified_levels: # the precision requirement is too strict to be met
             low_BER = cur_BER # make next BER bigger
@@ -109,7 +110,7 @@ def minimal_BER(specified_levels, eps, low_BER = 0, high_BER = 1, double=False):
     refined = refine(best_level)
     print(refined, best_BER)
     assert len(refined) == specified_levels / 2 if double else specified_levels
-    return refined
+    return refined, best_BER
 
 def read_from_json(filename):
     return json.load(open(filename))
@@ -134,7 +135,9 @@ def dump_to_json(level_alloc):
 
 
 if __name__ == "__main__":
-    init_model()
-    dump_to_json(minimal_BER(4, 1e-3, 0, 1, True))
-    dump_to_json(minimal_BER(8, 1e-3))
+    distributions = init_model()
+    refined, best_BER = minimal_BER(4, 1e-3, distributions, 0, 1, True)
+    dump_to_json(refined)
+    refined, best_BER = minimal_BER(8, 1e-3, distributions)
+    dump_to_json(refined)
     # dump_to_json(minimal_BER(16, 1e-10))
