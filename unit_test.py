@@ -24,14 +24,14 @@ def dump_to_json(level_alloc, algo_name):
 
 if __name__ == "__main__":
     distributions = init_model()
-    eps = 1e-3
+    eps = 1e-5
 
     results = {}
-    for n in [8, 16, 32]:
+    for n in [8]:
         print("----------------------------")
         print(f"Running for {n} levels")
-        # print("dala")
-        # dala_refined, dala_best_BER = dala_minimal_BER(n, eps, distributions)
+        print("dala")
+        dala_refined, dala_best_BER = dala_minimal_BER(n, eps, distributions)
         print("flexible_dala")
         flexible_refined, flexible_best_BER = flexible_dala_minimal_BER(n, eps, distributions)
         results[n] = {"flexible_dala": flexible_best_BER} # "dala": dala_best_BER, 
