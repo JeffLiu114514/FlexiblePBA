@@ -115,7 +115,7 @@ def bestcode_dict(codes, spec_ber, raw_ber_dict, maxk, maxn):
     for key in raw_ber_dict.keys():
         val = bestcode(codes, spec_ber, raw_ber_dict[key], maxk, maxn)
         res[key] = val
-    print(res)
+    # print(res)
     return res
 
 def report_improve(ecc_res):

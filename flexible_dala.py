@@ -47,6 +47,7 @@ def minimal_BER(specified_levels, eps, distributions, low_BER = 0, high_BER = 1,
         if PRINT_ANCHOR:
             print("confirmed level and anchor:", confirmed_level[0], confirmed_level[1], anchor)
         result_level.append([confirmed_level[0], confirmed_level[1], confirmed_level[3], confirmed_level[4]])
+        cur_levels.remove(confirmed_level)
         while anchor <= MAX_RES+1:
             temp_levels = []
             for cur_level in cur_levels:
@@ -57,11 +58,13 @@ def minimal_BER(specified_levels, eps, distributions, low_BER = 0, high_BER = 1,
                     temp_levels.append([Rlow, Rhigh, RelaxDistr, tmin, tmax])
             if len(temp_levels) == 0:
                 break
+            
             confirmed_level, anchor = find_leftmost(temp_levels)
             if PRINT_ANCHOR:
                 print("confirmed level and anchor:", confirmed_level[0], confirmed_level[1],confirmed_level[3],confirmed_level[4], anchor)
 
             result_level.append([confirmed_level[0], confirmed_level[1], confirmed_level[3], confirmed_level[4]])
+            temp_levels.remove(confirmed_level)
             cur_levels = temp_levels   
         
         cur_levels = result_level
