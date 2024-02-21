@@ -27,11 +27,11 @@ if __name__ == "__main__":
     eps = 1e-5
 
     results = {}
-    for n in [8, 16]:
+    for n in [16]:
         print("----------------------------")
         print(f"Running for {n} levels")
-        # print("dala")
-        # dala_refined, dala_best_BER = dala_minimal_BER(n, eps, distributions)
+        print("dala")
+        dala_refined, dala_best_BER = dala_minimal_BER(n, eps, distributions)
         print("flexible_dala")
         flexible_refined, flexible_best_BER = flexible_dala_minimal_BER(n, eps, distributions)
         results[n] = {"flexible_dala": flexible_best_BER} # "dala": dala_best_BER, 
