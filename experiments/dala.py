@@ -43,7 +43,7 @@ def longest_non_overlap(levels):
         nxt = sorted_levels[i]
         # the next level's Rlow does not overlap with the current level's Rhigh
         # the next level's tmin (write ranges) does not overlap with current level's tmax
-        if nxt[0] >= cur[1] and nxt[2] >= cur[3]:
+        if nxt[0] >= cur[1]:# and nxt[2] >= cur[3]
             res.append(nxt)
             cur = nxt
     return res

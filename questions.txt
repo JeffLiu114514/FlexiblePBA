@@ -1,3 +1,0 @@
-1. what exactly are tmin and tmax? They are called write_level_low and write_level_high in your README.md. Do we need to keep
-   both read and write ranges non-overlapping? Don't we have a precise write center c?
-2. why double? what does it mean by "insufficient data to characterize the error"

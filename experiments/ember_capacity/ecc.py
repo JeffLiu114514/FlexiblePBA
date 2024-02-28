@@ -120,14 +120,21 @@ def bestcode_dict(codes, spec_ber, raw_ber_dict, maxk, maxn):
 
 def report_improve(ecc_res):
     res = ecc_res
+    
     flexible4 = ecc_res['flexible4'][1] - 1
     dala4 = ecc_res['dala4'][1] - 1
     res['Overhead_Ratio_4'] = dala4 / flexible4
     res['Reduction_in_Overhead_Ratio_4'] = (dala4 - flexible4) / dala4
+    
     flexible8 = ecc_res['flexible8'][1] - 1
     dala8 = ecc_res['dala8'][1] - 1
     res['Overhead_Ratio_8'] = dala8 / flexible8
     res['Reduction_in_Overhead_Ratio_8'] = (dala8 - flexible8) / dala8
+    
+    flexible16 = ecc_res['flexible16'][1] - 1
+    dala16 = ecc_res['dala16'][1] - 1
+    res['Overhead_Ratio_16'] = dala16 / flexible16
+    res['Reduction_in_Overhead_Ratio_16'] = (dala16 - flexible16) / dala16
 
     pprint.pprint(res)
 
@@ -135,8 +142,10 @@ def report_improve(ecc_res):
 raw_ber = {\
 'dala4' : 0.0,
 'dala8' : 0.003795615468409586,
+'dala16' : 0.03641365400326797,
 'flexible4' : 0.0,
 'flexible8' : 0.003497753267973856,
+'flexible16' : 0.036560457516339864,
 }
 error_spec = 1e-14
 

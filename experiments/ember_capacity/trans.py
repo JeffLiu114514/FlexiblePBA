@@ -43,7 +43,7 @@ def report_drift_reduction(queries):
         our, sba, hint = item
         assert len(our) == len(sba)
         reduce_list = []
-        for i in range(4, 9):
+        for i in range(4, 17):
             reduce_list.append((sba[i] - our[i]) / sba[i])
         reduce_avg = sum(reduce_list) / len(reduce_list)
         print(f"{hint} Drift Reduction", reduce_list)
@@ -52,10 +52,12 @@ def report_drift_reduction(queries):
 gray_coding = \
 {
     4: ["00", "01", "11", "10"],
-    8: ["000", "001", "011", "010", "110", "111", "101", "100"]
+    8: ["000", "001", "011", "010", "110", "111", "101", "100"],
+    16: ["0000", "0001", "0011", "0010", "0110", "0111", "0101", "0100", "1100", "1101", "1111", "1110", "1010", "1011", "1001", "1000"]
 }
 dist_4 = np.zeros((4, 4))
 dist_8 = np.zeros((8, 8))
+dist_16 = np.zeros((16, 16))
 
 def str_diff(s1, s2):
     assert len(s1) == len(s2)
@@ -73,6 +75,9 @@ def init_dist():
     for i in range(0, 8):
         for j in range(0, 8):
             dist_8[i][j] = str_diff(gray_coding[8][i], gray_coding[8][j])
+    for i in range(0, 16):
+        for j in range(0, 16):
+            dist_16[i][j] = str_diff(gray_coding[16][i], gray_coding[16][j])
     # pprint.pprint(dist_4)
     # pprint.pprint(dist_8)
 
@@ -87,6 +92,9 @@ def report_ber(filename_prefix, level_list, hint=None):
         elif i == 8:
             dist = dist_8
             num_bits = 3
+        elif i == 16:
+            dist = dist_16
+            num_bits = 4
         else:
             assert False
         fname = filename_prefix + str(i)
@@ -118,9 +126,9 @@ if __name__ == "__main__":
 # instead of scheme_analyze.py (which is non-uniform weighted average)
     init_dist()
     print("raw_ber = {\\")
-    pba_ber = report_ber("dala", [4, 8])
-    fpba_ber = report_ber("flexible", [4, 8])
+    pba_ber = report_ber("dala", [4, 8, 16])
+    fpba_ber = report_ber("flexible", [4, 8, 16])
     
     # norm_ber = report_ber("SBAmeanvar", [4, 8], hint="norm")
     print("}")
-    report_ber_reduction(fpba_ber, pba_ber, ["4", "8"])
+    report_ber_reduction(fpba_ber, pba_ber, ["4", "8", "16"])

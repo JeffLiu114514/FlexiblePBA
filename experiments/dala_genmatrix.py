@@ -30,7 +30,7 @@ def simulate_error(level_alloc, distributions):
 
 def get_dala(distributions):
     res = {}
-    for i in range(4, 9):
+    for i in range(4, 17):
         if i <= 5:
             res[i] = dala.minimal_BER(i, 1e-3, distributions, 0, 1, True)
         else:
@@ -40,7 +40,7 @@ def get_dala(distributions):
 
 def get_flexible_dala(distributions):
     res = {}
-    for i in range(4, 9):
+    for i in range(4, 17):
         if i <= 5:
             res[i] = flexible_dala.minimal_BER(i, 1e-3, distributions, 0, 1, True)
         else:
@@ -49,7 +49,7 @@ def get_flexible_dala(distributions):
     return res
 
 def simulate_all_levels(dala_allocs, distribution, outfile):
-    for i in range(4, 9):
+    for i in range(4, 17):
         P = simulate_error(dala_allocs[i][0], distribution)
         dump_matrix(P, outfile)
 
@@ -64,7 +64,8 @@ def dump_matrix(matrix, hint):
 if __name__ == "__main__":
     distributions = dala.init_model()
     dala_allocs = get_dala(distributions)
-    # print(dala_allocs)
+    # print(dala_allocs[16])
     fdala_allocs = get_flexible_dala(distributions)
+    # print(fdala_allocs[16])
     simulate_all_levels(dala_allocs, distributions, outfile+"dala")
     simulate_all_levels(fdala_allocs, distributions, outfile+"flexible")
