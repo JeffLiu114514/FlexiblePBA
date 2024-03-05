@@ -5,7 +5,7 @@ import bisect
 date="Feb12"
 MAX_RES = 64
 PRINT_ANCHOR = False
-DEBUG = False
+DEBUG = True
 
 def init_model():
     distributions = {}
@@ -84,22 +84,25 @@ def candidate_gen(BER, distributions):
     if DEBUG:
         print(BER, "Started")
     levels = []
+    flag = False
     for tmin in range(0, 60):
         tmax = tmin + 4
         RelaxDistr = distributions[(tmin, tmax)]
         # if DEBUG:
         #     print(len(RelaxDistr),int(BER * len(RelaxDistr) / 2))
+        if int(BER * len(RelaxDistr)) == 0: flag = True
         Rlow, Rhigh = getReadRange(RelaxDistr, BER)
         # assert Rlow <= tmin and tmax <= Rhigh, (Rlow, Rhigh, tmin, tmax)
         levels.append([Rlow, Rhigh, RelaxDistr, tmin, tmax])
+    if DEBUG: print("BER * length of distribution is 0: ", flag)
     return levels
 
 
 def getReadRange(vals, BER):
     # The read range [Rmin, Rmax) -- any point within [Rmin, Rmax) are within this level
-    if int(BER * len(vals)) == 0:
-        return vals[0], vals[-1] + 1
     num_discard = int(BER * len(vals))
+    if num_discard == 0:
+        return vals[0], vals[-1] + 1
     return vals[0], vals[-num_discard] + 1
 
 

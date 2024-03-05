@@ -61,7 +61,7 @@ def BCH():
     res = {}
     filename = "BCH.txt"
     if "ecc" not in os.getcwd():
-        filename = "../ecc/BCH.txt"
+        filename = "./ecc/BCH.txt"
     with open(filename, "r") as fin:
         lines = fin.readlines()[1:]
         for line in lines:
@@ -118,34 +118,72 @@ def bestcode_dict(codes, spec_ber, raw_ber_dict, maxk, maxn):
     # print(res)
     return res
 
-def report_improve(ecc_res):
+def report_improve(ecc_res, level_list):
     res = ecc_res
     
-    flexible4 = ecc_res['flexible4'][1] - 1
-    dala4 = ecc_res['dala4'][1] - 1
-    res['Overhead_Ratio_4'] = dala4 / flexible4
-    res['Reduction_in_Overhead_Ratio_4'] = (dala4 - flexible4) / dala4
+    for i in level_list:
+        flexible = ecc_res[f'flexible{i}'][1] - 1
+        dala = ecc_res[f'dala{i}'][1] - 1
+        res[f'Overhead_Ratio_{i}'] = dala / flexible
+        res[f'Reduction_in_Overhead_Ratio_{i}'] = (dala - flexible) / dala
+    # flexible4 = ecc_res[f'flexible{i}'][1] - 1
+    # dala4 = ecc_res['dala4'][1] - 1
+    # res['Overhead_Ratio_4'] = dala4 / flexible4
+    # res['Reduction_in_Overhead_Ratio_4'] = (dala4 - flexible4) / dala4
     
-    flexible8 = ecc_res['flexible8'][1] - 1
-    dala8 = ecc_res['dala8'][1] - 1
-    res['Overhead_Ratio_8'] = dala8 / flexible8
-    res['Reduction_in_Overhead_Ratio_8'] = (dala8 - flexible8) / dala8
+    # flexible8 = ecc_res['flexible8'][1] - 1
+    # dala8 = ecc_res['dala8'][1] - 1
+    # res['Overhead_Ratio_8'] = dala8 / flexible8
+    # res['Reduction_in_Overhead_Ratio_8'] = (dala8 - flexible8) / dala8
     
-    flexible16 = ecc_res['flexible16'][1] - 1
-    dala16 = ecc_res['dala16'][1] - 1
-    res['Overhead_Ratio_16'] = dala16 / flexible16
-    res['Reduction_in_Overhead_Ratio_16'] = (dala16 - flexible16) / dala16
+    # flexible16 = ecc_res['flexible16'][1] - 1
+    # dala16 = ecc_res['dala16'][1] - 1
+    # res['Overhead_Ratio_16'] = dala16 / flexible16
+    # res['Reduction_in_Overhead_Ratio_16'] = (dala16 - flexible16) / dala16
 
     pprint.pprint(res)
+    
+def report_improve_sample(ecc_res, level_list, sample_sizes):
+    res = ecc_res
+    
+    for i in level_list:
+        for sample_size in sample_sizes:
+            flexible = ecc_res[f'flexible{i}_{sample_size}'][1] - 1
+            dala = ecc_res[f'dala{i}_{sample_size}'][1] - 1
+            res[f'Overhead_Ratio_{i}_{sample_size}'] = dala / flexible
+            res[f'Reduction_in_Overhead_Ratio_{i}_{sample_size}'] = (dala - flexible) / dala
+
+    pprint.pprint(res)
+    
 
 # obtained from trans.py
+# raw_ber = {\
+# 'dala4' : 0.0,
+# 'dala8' : 0.003795615468409586,
+# 'dala16' : 0.03641365400326797,
+# 'flexible4' : 0.0,
+# 'flexible8' : 0.003497753267973856,
+# 'flexible16' : 0.036560457516339864,
+# }
 raw_ber = {\
-'dala4' : 0.0,
-'dala8' : 0.003795615468409586,
-'dala16' : 0.03641365400326797,
-'flexible4' : 0.0,
-'flexible8' : 0.003497753267973856,
-'flexible16' : 0.036560457516339864,
+'dala4_25' : 0.0,
+'dala4_50' : 0.0,
+'dala4_75' : 0.0,
+'dala8_25' : 0.004110498366013072,
+'dala8_50' : 0.004110498366013072,
+'dala8_75' : 0.003795615468409586,
+'dala16_25' : 0.03434563929738562,
+'dala16_50' : 0.03434563929738562,
+'dala16_75' : 0.03641365400326797,
+'flexible4_25' : 0.0,
+'flexible4_50' : 0.0,
+'flexible4_75' : 0.0,
+'flexible8_25' : 0.004110498366013072,
+'flexible8_50' : 0.003642429193899782,
+'flexible8_75' : 0.003497753267973856,
+'flexible16_25' : 0.039030586192810454,
+'flexible16_50' : 0.039030586192810454,
+'flexible16_75' : 0.036560457516339864,
 }
 error_spec = 1e-14
 
@@ -154,4 +192,5 @@ if __name__ == "__main__":
     # print("Add Constraints")
     for i in range(12, 13):
         print("No bigger than", 2**i)
-        report_improve(bestcode_dict(allcode(), error_spec, raw_ber, 2**i, 2**i))
+        # report_improve(bestcode_dict(allcode(), error_spec, raw_ber, 2**i, 2**i), [4, 8, 16])
+        report_improve_sample(bestcode_dict(allcode(), error_spec, raw_ber, 2**i, 2**i), [4, 8, 16], [25, 50, 75])

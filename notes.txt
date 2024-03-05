@@ -35,3 +35,50 @@ raw_ber = {\
                37,
                9,
                9.007336460444541e-15]}
+
+
+
+
+
+
+
+Uniform sample with 25%, 50%, 75%:
+raw_ber = {\
+'dala4_25' : 0.0,
+'dala4_50' : 0.0,
+'dala4_75' : 0.0,
+'dala8_25' : 0.004110498366013072,
+'dala8_50' : 0.004110498366013072,
+'dala8_75' : 0.003795615468409586,
+'dala16_25' : 0.03434563929738562,
+'dala16_50' : 0.03434563929738562,
+'dala16_75' : 0.03641365400326797,
+'flexible4_25' : 0.0,
+'flexible4_50' : 0.0,
+'flexible4_75' : 0.0,
+'flexible8_25' : 0.004110498366013072,
+'flexible8_50' : 0.003642429193899782,
+'flexible8_75' : 0.003497753267973856,
+'flexible16_25' : 0.039030586192810454,
+'flexible16_50' : 0.039030586192810454,
+'flexible16_75' : 0.036560457516339864,
+}
+
+'Overhead_Ratio_16_25': 0.9096209912536446,
+ 'Overhead_Ratio_16_50': 0.9096209912536446,
+'Overhead_Ratio_16_75': 0.9970760233918133,
+'Overhead_Ratio_4_25': 1.0,
+'Overhead_Ratio_4_50': 1.0,
+'Overhead_Ratio_4_75': 1.0,
+'Overhead_Ratio_8_25': 1.0,
+'Overhead_Ratio_8_50': 1.04007063298017,
+'Overhead_Ratio_8_75': 1.0606181721289645,
+'Reduction_in_Overhead_Ratio_16_25': -0.09935897435897405,  
+'Reduction_in_Overhead_Ratio_16_50': -0.09935897435897405,  
+'Reduction_in_Overhead_Ratio_16_75': -0.0029325513196476094,
+'Reduction_in_Overhead_Ratio_4_25': 0.0,
+'Reduction_in_Overhead_Ratio_4_50': 0.0,
+'Reduction_in_Overhead_Ratio_4_75': 0.0,
+'Reduction_in_Overhead_Ratio_8_25': 0.0,
+'Reduction_in_Overhead_Ratio_8_50': 0.03852683818728108,    
+'Reduction_in_Overhead_Ratio_8_75': 0.05715362391659434,
