@@ -166,6 +166,12 @@ def report_improve_sample(ecc_res, level_list, sample_sizes):
 # 'flexible16' : 0.036560457516339864,
 # }
 raw_ber = {\
+'dala4_15' : 0.0,
+'dala8_15' : 0.004255174291938998,
+'dala16_15' : 0.03434563929738562,
+'flexible4_15' : 0.0,
+'flexible8_15' : 0.0041019880174291935,
+'flexible16_15' : 0.040198631535947715,
 'dala4_25' : 0.0,
 'dala4_50' : 0.0,
 'dala4_75' : 0.0,
@@ -193,4 +199,4 @@ if __name__ == "__main__":
     for i in range(12, 13):
         print("No bigger than", 2**i)
         # report_improve(bestcode_dict(allcode(), error_spec, raw_ber, 2**i, 2**i), [4, 8, 16])
-        report_improve_sample(bestcode_dict(allcode(), error_spec, raw_ber, 2**i, 2**i), [4, 8, 16], [25, 50, 75])
+        report_improve_sample(bestcode_dict(allcode(), error_spec, raw_ber, 2**i, 2**i), [4, 8, 16], [15, 25, 50, 75])

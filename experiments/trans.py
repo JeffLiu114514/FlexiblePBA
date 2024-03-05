@@ -172,7 +172,7 @@ def trans(level_list):
     
     # norm_ber = report_ber("SBAmeanvar", [4, 8], hint="norm")
     print("}")
-    report_ber_reduction(fpba_ber, pba_ber, map(str, level_list))
+    report_ber_reduction(fpba_ber, pba_ber, list(map(str, level_list)))
 
 
 if __name__ == "__main__":
@@ -185,4 +185,5 @@ if __name__ == "__main__":
     #                         (ours_drift, our_norm, "Non-Normal")])
 # we should use this file for final results reported in the paper
 # instead of scheme_analyze.py (which is non-uniform weighted average)
-    trans_sample([4, 8, 16], [25, 50, 75])
+    # trans_sample([4, 8, 16], [15, 25, 50, 75])
+    trans([4, 8, 16])

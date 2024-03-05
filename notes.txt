@@ -9,7 +9,9 @@ raw_ber = {\
 'flexible8' : 0.003497753267973856,
 'flexible16' : 0.036560457516339864,
 }
-
+BER reduction for level4 = nan
+BER reduction for level8 = 0.07847533632286999
+BER reduction for level16 = -0.004031551270814965
 
 {'Overhead_Ratio_16': 0.9970760233918133,
  'Overhead_Ratio_4': 1.0,
@@ -39,11 +41,20 @@ raw_ber = {\
 
 
 
+distributions' shortest length is 272 = 2*2*2*2*17
+sample sizes less than 15% will cause the sampled distribution become so short that 
+BER*length will flip between 1 and 0 with BER's slight changes, which means the
+read range will flip between dist[1:-2] and dist[0:-1], and both dala and flexible dala
+never find 8 levels (they flip between 7 and 9 levels).
 
-
-
-Uniform sample with 25%, 50%, 75%:
+Uniform sample with 15%, 25%, 50%, 75%:
 raw_ber = {\
+'dala4_15' : 0.0,
+'dala8_15' : 0.004255174291938998,
+'dala16_15' : 0.03434563929738562,
+'flexible4_15' : 0.0,
+'flexible8_15' : 0.0041019880174291935,
+'flexible16_15' : 0.040198631535947715,
 'dala4_25' : 0.0,
 'dala4_50' : 0.0,
 'dala4_75' : 0.0,
@@ -63,22 +74,40 @@ raw_ber = {\
 'flexible16_50' : 0.039030586192810454,
 'flexible16_75' : 0.036560457516339864,
 }
+BER reduction for level4_15 = nan
+BER reduction for level4_25 = nan
+BER reduction for level4_50 = nan
+BER reduction for level4_75 = nan
+BER reduction for level8_15 = 0.036000000000000074
+BER reduction for level8_25 = 0.0
+BER reduction for level8_50 = 0.11387163561076609
+BER reduction for level8_75 = 0.07847533632286999
+BER reduction for level16_15 = -0.17041442111131772
+BER reduction for level16_25 = -0.13640587251440245
+BER reduction for level16_50 = -0.13640587251440245
+BER reduction for level16_75 = -0.004031551270814965
 
+'Overhead_Ratio_16_15': 0.8883433072477114,
 'Overhead_Ratio_16_25': 0.9096209912536446,
- 'Overhead_Ratio_16_50': 0.9096209912536446,
+'Overhead_Ratio_16_50': 0.9096209912536446,
 'Overhead_Ratio_16_75': 0.9970760233918133,
+'Overhead_Ratio_4_15': 1.0,
 'Overhead_Ratio_4_25': 1.0,
 'Overhead_Ratio_4_50': 1.0,
 'Overhead_Ratio_4_75': 1.0,
+'Overhead_Ratio_8_15': 1.0399492707672797,
 'Overhead_Ratio_8_25': 1.0,
 'Overhead_Ratio_8_50': 1.04007063298017,
 'Overhead_Ratio_8_75': 1.0606181721289645,
+'Reduction_in_Overhead_Ratio_16_15': -0.12569092584062608,  
 'Reduction_in_Overhead_Ratio_16_25': -0.09935897435897405,  
 'Reduction_in_Overhead_Ratio_16_50': -0.09935897435897405,  
 'Reduction_in_Overhead_Ratio_16_75': -0.0029325513196476094,
+'Reduction_in_Overhead_Ratio_4_15': 0.0,
 'Reduction_in_Overhead_Ratio_4_25': 0.0,
 'Reduction_in_Overhead_Ratio_4_50': 0.0,
 'Reduction_in_Overhead_Ratio_4_75': 0.0,
+'Reduction_in_Overhead_Ratio_8_15': 0.03841463414634149,
 'Reduction_in_Overhead_Ratio_8_25': 0.0,
-'Reduction_in_Overhead_Ratio_8_50': 0.03852683818728108,    
+'Reduction_in_Overhead_Ratio_8_50': 0.03852683818728108,
 'Reduction_in_Overhead_Ratio_8_75': 0.05715362391659434,

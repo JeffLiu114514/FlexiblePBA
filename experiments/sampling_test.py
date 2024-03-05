@@ -43,18 +43,18 @@ if __name__ == "__main__":
     
     print("----------------------------")
     print(f"Running for 4 levels")
-    for sample_size in [12.5, 25, 50, 75]:
+    for sample_size in [25, 50, 75]:
         n = 4
         sample_distribution = sample_distributions(distributions, sample_size)
         
-        print("flexible_dala")
-        flexible_refined, flexible_best_BER = flexible_dala_minimal_BER(n, eps, sample_distribution, 0, 1, True)
-        P = simulate_error(flexible_refined, distributions)
-        dump_matrix_sample(P, outfile + "flexible", sample_size)
         print("dala")
         dala_refined, dala_best_BER = dala_minimal_BER(n, eps, sample_distribution, 0, 1, True)
         P = simulate_error(dala_refined, distributions)
         dump_matrix_sample(P, outfile + "dala", sample_size)
+        print("flexible_dala")
+        flexible_refined, flexible_best_BER = flexible_dala_minimal_BER(n, eps, sample_distribution, 0, 1, True)
+        P = simulate_error(flexible_refined, distributions)
+        dump_matrix_sample(P, outfile + "flexible", sample_size)
         
         results[(n, sample_size)] = {"dala": (dala_refined, dala_best_BER), "flexible_dala": (flexible_refined, flexible_best_BER)}
     
@@ -62,7 +62,7 @@ if __name__ == "__main__":
         print("----------------------------")
         print(f"Running for {n} levels")
         
-        for sample_size in [12.5, 25, 50, 75]:
+        for sample_size in [25, 50, 75]:
             sample_distribution = sample_distributions(distributions, sample_size)
             print(f"Sample size: {sample_size}%")
             print("dala")
