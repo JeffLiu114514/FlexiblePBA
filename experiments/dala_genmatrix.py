@@ -30,7 +30,7 @@ def simulate_error(level_alloc, distributions):
 
 def get_dala(distributions):
     res = {}
-    for i in range(4, 17):
+    for i in [4,8,16]:
         if i <= 5:
             res[i] = dala.minimal_BER(i, 1e-3, distributions, 0, 1, True)
         else:
@@ -40,7 +40,7 @@ def get_dala(distributions):
 
 def get_flexible_dala(distributions):
     res = {}
-    for i in range(4, 17):
+    for i in [4,8,16]:
         if i <= 5:
             res[i] = flexible_dala.minimal_BER(i, 1e-3, distributions, 0, 1, True)
         else:
@@ -49,13 +49,21 @@ def get_flexible_dala(distributions):
     return res
 
 def simulate_all_levels(dala_allocs, distribution, outfile):
-    for i in range(4, 17):
+    for i in [4,8,16]:
         P = simulate_error(dala_allocs[i][0], distribution)
         dump_matrix(P, outfile)
 
 def dump_matrix(matrix, hint):
     num_level = len(matrix)
     with open(hint + str(num_level), "w") as fout:
+        to_write = []
+        for i in range(len(matrix)):
+            to_write.append(",".join(map(str, matrix[i])) + "\n")
+        fout.writelines(to_write)
+        
+def dump_matrix_sample(matrix, hint, sample_size):
+    num_level = len(matrix)
+    with open(hint + str(num_level) + "_" + str(sample_size), "w") as fout:
         to_write = []
         for i in range(len(matrix)):
             to_write.append(",".join(map(str, matrix[i])) + "\n")

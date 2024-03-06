@@ -1,6 +1,8 @@
 import numpy as np
 import pprint
 
+directory = "./ember_capacity/"
+
 def get_matrix_from_file(filename):
     with open(filename, "r") as fin:
         lines = fin.readlines()
@@ -97,7 +99,7 @@ def report_ber(filename_prefix, level_list, hint=None):
             num_bits = 4
         else:
             assert False
-        fname = filename_prefix + str(i)
+        fname = directory + filename_prefix + str(i)
         matrix = get_matrix_from_file(fname)
         ber_matrix = np.multiply(matrix, dist) / i
         # pprint.pprint(ber_matrix)
@@ -109,10 +111,69 @@ def report_ber(filename_prefix, level_list, hint=None):
         res.append(ber_avg)
     return res
 
+def report_ber_sample(filename_prefix, level_list, sample_sizes, hint=None):
+    res = []
+    for i in level_list:
+        dist = 0
+        num_bits = 0
+        if i == 4:
+            dist = dist_4
+            num_bits = 2
+        elif i == 8:
+            dist = dist_8
+            num_bits = 3
+        elif i == 16:
+            dist = dist_16
+            num_bits = 4
+        else:
+            assert False
+        for sample_size in sample_sizes:
+            fname = directory + filename_prefix + str(i) + "_" + str(sample_size)
+            matrix = get_matrix_from_file(fname)
+            ber_matrix = np.multiply(matrix, dist) / i
+            # pprint.pprint(ber_matrix)
+            ber_avg = np.sum(ber_matrix) / num_bits
+            if hint is None:
+                print("'" + filename_prefix + str(i) + "_" + str(sample_size) + "' :", str(ber_avg)+",")
+            else:
+                print("'" + hint + str(i) + "_" + str(sample_size) + "' :", str(ber_avg)+",")
+            res.append(ber_avg)
+    return res
+
+def report_ber_reduction_sample(our, sba, hint, sample_sizes):
+    assert len(our) == len(sba)
+    index = 0
+    for i in range(0, len(hint)):
+        for sample_size in sample_sizes:
+            # print(index)
+            # print(sba[index])
+            # print(our[index])
+            print(f"BER reduction for level{hint[i]}_{sample_size} =", (sba[index] - our[index]) / sba[index])
+            index += 1
+        
 def report_ber_reduction(our, sba, hint):
     assert len(our) == len(sba)
     for i in range(0, len(our)):
         print(f"BER reduction for level{hint[i]} =", (sba[i] - our[i]) / sba[i])
+
+def trans_sample(level_list, sample_sizes):
+    init_dist()
+    print("raw_ber = {\\")
+    pba_ber = report_ber_sample("dala", level_list, sample_sizes)
+    fpba_ber = report_ber_sample("flexible", level_list, sample_sizes)
+    print("}")
+    report_ber_reduction_sample(fpba_ber, pba_ber, list(map(str, level_list)), sample_sizes)
+
+def trans(level_list):
+    init_dist()
+    print("raw_ber = {\\")
+    pba_ber = report_ber("dala", level_list)
+    fpba_ber = report_ber("flexible", level_list)
+    
+    # norm_ber = report_ber("SBAmeanvar", [4, 8], hint="norm")
+    print("}")
+    report_ber_reduction(fpba_ber, pba_ber, list(map(str, level_list)))
+
 
 if __name__ == "__main__":
     # ours_drift = report_results("flexible_dala", "sba_res")
@@ -124,11 +185,5 @@ if __name__ == "__main__":
     #                         (ours_drift, our_norm, "Non-Normal")])
 # we should use this file for final results reported in the paper
 # instead of scheme_analyze.py (which is non-uniform weighted average)
-    init_dist()
-    print("raw_ber = {\\")
-    pba_ber = report_ber("dala", [4, 8, 16])
-    fpba_ber = report_ber("flexible", [4, 8, 16])
-    
-    # norm_ber = report_ber("SBAmeanvar", [4, 8], hint="norm")
-    print("}")
-    report_ber_reduction(fpba_ber, pba_ber, ["4", "8", "16"])
+    # trans_sample([4, 8, 16], [15, 25, 50, 75])
+    trans([4, 8, 16])

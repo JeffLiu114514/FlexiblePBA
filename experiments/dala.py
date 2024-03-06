@@ -3,7 +3,7 @@ import pprint
 
 date="Feb6"
 
-DEBUG = False
+DEBUG = True
 
 
 def init_model():
@@ -21,14 +21,18 @@ def level_inference(BER, distributions):
     if DEBUG:
         print(BER, "Started")
     levels = []
+    flag = False
     for tmin in range(0, 60):
         tmax = tmin + 4
         RelaxDistr = distributions[(tmin, tmax)]
         # if DEBUG:
         #     print(len(RelaxDistr),int(BER * len(RelaxDistr) / 2))
+        if int(BER * len(RelaxDistr) / 2) == 0: flag = True
         Rlow, Rhigh = getReadRange(RelaxDistr, BER)
         # assert Rlow <= tmin and tmax <= Rhigh, (Rlow, Rhigh, tmin, tmax)
         levels.append([Rlow, Rhigh, tmin, tmax])
+    if DEBUG: print("BER * length of distribution/2 is 0: ", flag)
+    # print(levels)
     return longest_non_overlap(levels)
 
 def longest_non_overlap(levels):
@@ -52,6 +56,8 @@ def longest_non_overlap(levels):
 def getReadRange(vals, BER):
     # The read range [Rmin, Rmax) -- any point within [Rmin, Rmax) are within this level
     num_discard = int(BER * len(vals) / 2)
+    if num_discard == 0:
+        return vals[num_discard], vals[-1] + 1
     return vals[num_discard], vals[-num_discard] + 1
 
 def refine(level_alloc):
