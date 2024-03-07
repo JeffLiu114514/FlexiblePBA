@@ -1,5 +1,6 @@
 import numpy as np
 import pprint
+import matplotlib.pyplot as plt
 
 directory = "./ember_capacity/"
 
@@ -113,6 +114,7 @@ def report_ber(filename_prefix, level_list, hint=None):
 
 def report_ber_sample(filename_prefix, level_list, sample_sizes, hint=None):
     res = []
+    skip = []
     for i in level_list:
         dist = 0
         num_bits = 0
@@ -128,28 +130,40 @@ def report_ber_sample(filename_prefix, level_list, sample_sizes, hint=None):
         else:
             assert False
         for sample_size in sample_sizes:
-            fname = directory + filename_prefix + str(i) + "_" + str(sample_size)
-            matrix = get_matrix_from_file(fname)
-            ber_matrix = np.multiply(matrix, dist) / i
-            # pprint.pprint(ber_matrix)
-            ber_avg = np.sum(ber_matrix) / num_bits
-            if hint is None:
-                print("'" + filename_prefix + str(i) + "_" + str(sample_size) + "' :", str(ber_avg)+",")
-            else:
-                print("'" + hint + str(i) + "_" + str(sample_size) + "' :", str(ber_avg)+",")
-            res.append(ber_avg)
-    return res
+            try:
+                fname = directory + filename_prefix + str(i) + "_" + str(sample_size)
+                matrix = get_matrix_from_file(fname)
+                ber_matrix = np.multiply(matrix, dist) / i
+                # pprint.pprint(ber_matrix)
+                ber_avg = np.sum(ber_matrix) / num_bits
+                if hint is None:
+                    print("'" + filename_prefix + str(i) + "_" + str(sample_size) + "' :", str(ber_avg)+",")
+                else:
+                    print("'" + hint + str(i) + "_" + str(sample_size) + "' :", str(ber_avg)+",")
+                res.append(ber_avg)
+            except FileNotFoundError as e:
+                # print(e)
+                # print("filename", filename_prefix + str(i) + "_" + str(sample_size))
+                skip.append(sample_size)
+                continue
+    return res, skip
 
 def report_ber_reduction_sample(our, sba, hint, sample_sizes):
     assert len(our) == len(sba)
     index = 0
+    reductions = {}
     for i in range(0, len(hint)):
+        sample_reduction = []
         for sample_size in sample_sizes:
             # print(index)
             # print(sba[index])
             # print(our[index])
-            print(f"BER reduction for level{hint[i]}_{sample_size} =", (sba[index] - our[index]) / sba[index])
+            reduction = (sba[index] - our[index]) / sba[index]
+            sample_reduction.append(reduction)
+            print(f"BER reduction for level{hint[i]}_{sample_size} =", reduction)
             index += 1
+        reductions[hint[i]] = sample_reduction
+    return reductions
         
 def report_ber_reduction(our, sba, hint):
     assert len(our) == len(sba)
@@ -159,10 +173,17 @@ def report_ber_reduction(our, sba, hint):
 def trans_sample(level_list, sample_sizes):
     init_dist()
     print("raw_ber = {\\")
-    pba_ber = report_ber_sample("dala", level_list, sample_sizes)
-    fpba_ber = report_ber_sample("flexible", level_list, sample_sizes)
+    pba_ber, skip = report_ber_sample("dala", level_list, sample_sizes)
+    fpba_ber, skip = report_ber_sample("flexible", level_list, sample_sizes)
     print("}")
-    report_ber_reduction_sample(fpba_ber, pba_ber, list(map(str, level_list)), sample_sizes)
+    sample_sizes = [item for item in sample_sizes if item not in skip]
+    reductions = report_ber_reduction_sample(fpba_ber, pba_ber, list(map(str, level_list)), sample_sizes)
+    for i in level_list:
+        plt.plot(sample_sizes, reductions[str(i)], marker='o')
+        plt.xlabel('sample sizes')
+        plt.ylabel('BER reductions')
+        plt.title(f'{i}-level BER reductions')
+        plt.show()
 
 def trans(level_list):
     init_dist()
@@ -185,5 +206,5 @@ if __name__ == "__main__":
     #                         (ours_drift, our_norm, "Non-Normal")])
 # we should use this file for final results reported in the paper
 # instead of scheme_analyze.py (which is non-uniform weighted average)
-    # trans_sample([4, 8, 16], [15, 25, 50, 75])
-    trans([4, 8, 16])
+    trans_sample([8, 16], range(15, 100))
+    # trans([4, 8, 16])

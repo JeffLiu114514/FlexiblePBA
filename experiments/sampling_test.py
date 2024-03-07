@@ -37,48 +37,53 @@ def sample_distributions(distributions, percentage, sample_method="uniform"):
 
 if __name__ == "__main__":
     distributions = init_model()
-    eps = 1e-5
+    eps = 1e-3
     outfile = "./ember_capacity/"
     results = {}
     
     print("----------------------------")
     print(f"Running for 4 levels")
-    for sample_size in [25, 50, 75]:
-        n = 4
-        sample_distribution = sample_distributions(distributions, sample_size)
+    # for sample_size in [25, 50, 75]:
+    #     n = 4
+    #     sample_distribution = sample_distributions(distributions, sample_size)
         
-        print("dala")
-        dala_refined, dala_best_BER = dala_minimal_BER(n, eps, sample_distribution, 0, 1, True)
-        P = simulate_error(dala_refined, distributions)
-        dump_matrix_sample(P, outfile + "dala", sample_size)
-        print("flexible_dala")
-        flexible_refined, flexible_best_BER = flexible_dala_minimal_BER(n, eps, sample_distribution, 0, 1, True)
-        P = simulate_error(flexible_refined, distributions)
-        dump_matrix_sample(P, outfile + "flexible", sample_size)
+    #     print("dala")
+    #     dala_refined, dala_best_BER = dala_minimal_BER(n, eps, sample_distribution, 0, 1, True)
+    #     P = simulate_error(dala_refined, distributions)
+    #     dump_matrix_sample(P, outfile + "dala", sample_size)
+    #     print("flexible_dala")
+    #     flexible_refined, flexible_best_BER = flexible_dala_minimal_BER(n, eps, sample_distribution, 0, 1, True)
+    #     P = simulate_error(flexible_refined, distributions)
+    #     dump_matrix_sample(P, outfile + "flexible", sample_size)
         
-        results[(n, sample_size)] = {"dala": (dala_refined, dala_best_BER), "flexible_dala": (flexible_refined, flexible_best_BER)}
+    #     results[(n, sample_size)] = {"dala": (dala_refined, dala_best_BER), "flexible_dala": (flexible_refined, flexible_best_BER)}
     
     for n in [8, 16]:
         print("----------------------------")
         print(f"Running for {n} levels")
         
-        for sample_size in [25, 50, 75]:
-            sample_distribution = sample_distributions(distributions, sample_size)
-            print(f"Sample size: {sample_size}%")
-            print("dala")
-            dala_refined, dala_best_BER = dala_minimal_BER(n, eps, sample_distribution)
-            P = simulate_error(dala_refined, distributions)
-            dump_matrix_sample(P, outfile + "dala", sample_size)
-            print("flexible_dala")
-            flexible_refined, flexible_best_BER = flexible_dala_minimal_BER(n, eps, sample_distribution)
-            P = simulate_error(flexible_refined, distributions)
-            dump_matrix_sample(P, outfile + "flexible", sample_size)
-            # fkey = f"{n}_{sample_size}"
-            results[(n, sample_size)] = {"dala": (dala_refined, dala_best_BER), "flexible_dala": (flexible_refined, flexible_best_BER)} # (n, sample_size)
+        for sample_size in range(15, 100):
+            try:
+                sample_distribution = sample_distributions(distributions, sample_size)
+                print(f"Sample size: {sample_size}%")
+                print("dala")
+                dala_refined, dala_best_BER = dala_minimal_BER(n, eps, sample_distribution)
+                P = simulate_error(dala_refined, distributions)
+                dump_matrix_sample(P, outfile + "dala", sample_size)
+                print("flexible_dala")
+                flexible_refined, flexible_best_BER = flexible_dala_minimal_BER(n, eps, sample_distribution)
+                P = simulate_error(flexible_refined, distributions)
+                dump_matrix_sample(P, outfile + "flexible", sample_size)
+                # fkey = f"{n}_{sample_size}"
+                results[(n, sample_size)] = {"dala": (dala_refined, dala_best_BER), "flexible_dala": (flexible_refined, flexible_best_BER)} # (n, sample_size)
+            except UnboundLocalError as e:
+                print(f"Sample size: {sample_size}%")
+                print(f"Error: {e}")
+                continue
     
-    for key, value in results.items():
-        print(key, value)
-        print()
+    # for key, value in results.items():
+    #     print(key, value)
+    #     print()
     # write_to_json(results, "sampling_test_results.json")
     
 

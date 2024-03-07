@@ -5,7 +5,7 @@ import bisect
 date="Feb12"
 MAX_RES = 64
 PRINT_ANCHOR = False
-DEBUG = True
+DEBUG = False
 
 def init_model():
     distributions = {}

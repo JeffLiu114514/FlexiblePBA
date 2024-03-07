@@ -3,7 +3,7 @@ import pprint
 
 date="Feb6"
 
-DEBUG = True
+DEBUG = False
 
 
 def init_model():
@@ -25,9 +25,10 @@ def level_inference(BER, distributions):
     for tmin in range(0, 60):
         tmax = tmin + 4
         RelaxDistr = distributions[(tmin, tmax)]
-        # if DEBUG:
-        #     print(len(RelaxDistr),int(BER * len(RelaxDistr) / 2))
-        if int(BER * len(RelaxDistr) / 2) == 0: flag = True
+        if DEBUG:
+            print(len(RelaxDistr),int(BER * len(RelaxDistr) / 2))
+        if DEBUG: 
+            if int(BER * len(RelaxDistr) / 2) == 0: flag = True
         Rlow, Rhigh = getReadRange(RelaxDistr, BER)
         # assert Rlow <= tmin and tmax <= Rhigh, (Rlow, Rhigh, tmin, tmax)
         levels.append([Rlow, Rhigh, tmin, tmax])

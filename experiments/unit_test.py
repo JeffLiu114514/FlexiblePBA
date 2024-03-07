@@ -27,7 +27,7 @@ if __name__ == "__main__":
     eps = 1e-5
 
     results = {}
-    for n in [16]:
+    for n in [8, 16]:
         print("----------------------------")
         print(f"Running for {n} levels")
         print("dala")
