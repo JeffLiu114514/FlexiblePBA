@@ -1,4 +1,3 @@
-from dala_genmatrix import simulate_error
 import numpy as np
 
 def str_diff(s1, s2):
@@ -30,6 +29,30 @@ def init_dist():
         for j in range(0, 16):
             dist_16[i][j] = str_diff(gray_coding[16][i], gray_coding[16][j])
     return dist_4, dist_8, dist_16
+
+def decide_end_level(point, level_alloc):
+    for i in range(len(level_alloc)):
+        rmin, rmax, wmin, wmax = level_alloc[i]    
+        if point >= rmin and point < rmax:
+            return i
+    if point == 64: # last level
+        return len(level_alloc)-1
+    assert False, point
+    
+def simulate_error(level_alloc, distributions):
+    num_levels = len(level_alloc)
+    P = np.zeros((num_levels, num_levels))
+    num_points = 0
+    for i in range(len(level_alloc)):
+        rmin, rmax, wmin, wmax = level_alloc[i]
+        d1s = distributions[(wmin, wmax)]
+        for point in d1s:
+            end_level = decide_end_level(point, level_alloc)
+            P[end_level][i] += 1
+        for j in range(0, len(level_alloc)):
+            P[j][i] = P[j][i] / len(d1s)
+        num_points += len(d1s)
+    return P
 
 def report_ber(matrix, n, dist_4, dist_8, dist_16):
     # res = []

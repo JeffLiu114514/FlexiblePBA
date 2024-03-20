@@ -1,4 +1,5 @@
 import json
+import copy
 import pprint
 import bisect
 from refine_utils import get_ber_for_allocs, init_dist
@@ -33,7 +34,7 @@ def update(R, anchor, xl, xh, BER):
     return anchor, R[-num_discard] + 1
     
 
-def minimal_BER(specified_levels, eps, distributions, low_BER = 0, high_BER = 1, flexible_refine=False, double=False):
+def minimal_BER(specified_levels, eps, distributions, low_BER = 0, high_BER = 1, flexible_refine_flag=False, double=False):
     # rationale for double: for 4 levels with insufficient data to characterize the error
     #   we need to allocate 8 levels then half the levels
     if double:
@@ -77,8 +78,8 @@ def minimal_BER(specified_levels, eps, distributions, low_BER = 0, high_BER = 1,
     if double:
         best_level = half(best_level)
         
-    if flexible_refine:
-        best_level = flexible_refine(best_level)
+    if flexible_refine_flag:
+        refined = flexible_refine(best_level, specified_levels, distributions)
     else:
         refined = refine(best_level)
     if DEBUG: print(refined, best_BER)
@@ -129,25 +130,34 @@ def refine(level_alloc):
     level_alloc[len(level_alloc)-1][1] = 64
     return level_alloc
 
-def flexible_refine(level_alloc):
+def flexible_refine(level_alloc, specified_levels, distributions):
     '''
     optimally close the gap between adjacent read ranges with respect to BER
     '''
-    print("before refine", level_alloc)
+    
+    vanilla = copy.deepcopy(level_alloc)
+    print("vanilla: ", vanilla)
+    level_alloc = refine(level_alloc)
+    print("naive refine: ", level_alloc)
     
     dist_4, dist_8, dist_16 = init_dist()
-    for i in range(1, len(level_alloc)):
+    min_ber = get_ber_for_allocs(level_alloc, distributions, specified_levels, dist_4, dist_8, dist_16)
+    for i in range(1, len(vanilla)):
         assert level_alloc[i - 1][1] <= level_alloc[i][0]
-        
-        
-        merge = int((level_alloc[i - 1][1] + level_alloc[i][0]) / 2)
-        
-        
-        level_alloc[i - 1][1] = merge
-        level_alloc[i][0] = merge
+        for j in range(vanilla[i - 1][1] + 1, vanilla[i][0]):
+            level_alloc[i - 1][1] = j
+            level_alloc[i][0] = j
+            ber = get_ber_for_allocs(level_alloc, distributions, specified_levels, dist_4, dist_8, dist_16)
+            print(j, ber)
+            if ber < min_ber:
+                min_ber = ber
+            else:
+                continue
     level_alloc[0][0] = 0
     level_alloc[len(level_alloc)-1][1] = 64
-    print("after refine", level_alloc)
+    
+    print("flexible refine", level_alloc)
+    print("BER: ", min_ber)
     return level_alloc
 
 def half(level_alloc):
@@ -196,8 +206,17 @@ def dump_to_json(level_alloc):
 
 if __name__ == "__main__":
     distributions = init_model()
-    refined, best_BER = minimal_BER(4, 1e-3, distributions, 0, 1, True)
-    dump_to_json(refined)
-    refined, best_BER = minimal_BER(8, 1e-3, distributions)
-    dump_to_json(refined)
+    # refined, best_BER = minimal_BER(4, 1e-3, distributions, 0, 1, True)
+    # dump_to_json(refined)
+    refined, best_BER = minimal_BER(8, 1e-3, distributions, flexible_refine_flag=False)
+    print(refined, best_BER)
+    refined, best_BER = minimal_BER(8, 1e-3, distributions, flexible_refine_flag=True)
+    print(refined, best_BER)
+    
+    refined, best_BER = minimal_BER(16, 1e-3, distributions, flexible_refine_flag=False)
+    print(refined, best_BER)
+    refined, best_BER = minimal_BER(16, 1e-3, distributions, flexible_refine_flag=True)
+    print(refined, best_BER)
+    
+    # dump_to_json(refined)
     # dump_to_json(minimal_BER(16, 1e-10))
