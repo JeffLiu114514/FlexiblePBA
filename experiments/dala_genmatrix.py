@@ -61,9 +61,9 @@ def dump_matrix(matrix, hint):
             to_write.append(",".join(map(str, matrix[i])) + "\n")
         fout.writelines(to_write)
         
-def dump_matrix_sample(matrix, hint, sample_size):
+def dump_matrix_sample(matrix, hint, sample_size, suffix=""):
     num_level = len(matrix)
-    with open(hint + str(num_level) + "_" + str(sample_size), "w") as fout:
+    with open(hint + str(num_level) + "_" + str(sample_size) + "_" + suffix, "w") as fout:
         to_write = []
         for i in range(len(matrix)):
             to_write.append(",".join(map(str, matrix[i])) + "\n")

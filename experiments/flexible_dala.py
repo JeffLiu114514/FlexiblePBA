@@ -1,6 +1,7 @@
 import json
 import pprint
 import bisect
+from refine_utils import get_ber_for_allocs, init_dist
 
 date="Feb12"
 MAX_RES = 64
@@ -32,7 +33,7 @@ def update(R, anchor, xl, xh, BER):
     return anchor, R[-num_discard] + 1
     
 
-def minimal_BER(specified_levels, eps, distributions, low_BER = 0, high_BER = 1, double=False):
+def minimal_BER(specified_levels, eps, distributions, low_BER = 0, high_BER = 1, flexible_refine=False, double=False):
     # rationale for double: for 4 levels with insufficient data to characterize the error
     #   we need to allocate 8 levels then half the levels
     if double:
@@ -75,7 +76,11 @@ def minimal_BER(specified_levels, eps, distributions, low_BER = 0, high_BER = 1,
             best_level, best_BER = cur_levels, cur_BER
     if double:
         best_level = half(best_level)
-    refined = refine(best_level)
+        
+    if flexible_refine:
+        best_level = flexible_refine(best_level)
+    else:
+        refined = refine(best_level)
     if DEBUG: print(refined, best_BER)
     assert len(refined) == specified_levels / 2 if double else specified_levels
     return refined, best_BER
@@ -124,6 +129,26 @@ def refine(level_alloc):
     level_alloc[len(level_alloc)-1][1] = 64
     return level_alloc
 
+def flexible_refine(level_alloc):
+    '''
+    optimally close the gap between adjacent read ranges with respect to BER
+    '''
+    print("before refine", level_alloc)
+    
+    dist_4, dist_8, dist_16 = init_dist()
+    for i in range(1, len(level_alloc)):
+        assert level_alloc[i - 1][1] <= level_alloc[i][0]
+        
+        
+        merge = int((level_alloc[i - 1][1] + level_alloc[i][0]) / 2)
+        
+        
+        level_alloc[i - 1][1] = merge
+        level_alloc[i][0] = merge
+    level_alloc[0][0] = 0
+    level_alloc[len(level_alloc)-1][1] = 64
+    print("after refine", level_alloc)
+    return level_alloc
 
 def half(level_alloc):
     assert len(level_alloc) % 2 == 0

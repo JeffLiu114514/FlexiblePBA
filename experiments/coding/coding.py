@@ -1,6 +1,7 @@
 import itertools
 import numpy as np
 import time
+import pprint
 
 gray_coding = \
 {
@@ -29,6 +30,24 @@ def get_matrix_from_file(filename):
             for j in range(n):
                 matrix[i][j] = line[j]
     return matrix
+
+def init_dist():
+    dist_4 = np.zeros((4, 4))
+    dist_8 = np.zeros((8, 8))
+    dist_16 = np.zeros((16, 16))
+    for i in range(0, 4):
+        for j in range(0, 4):
+            dist_4[i][j] = str_diff(gray_coding[4][i], gray_coding[4][j])
+    for i in range(0, 8):
+        for j in range(0, 8):
+            dist_8[i][j] = str_diff(gray_coding[8][i], gray_coding[8][j])
+    for i in range(0, 16):
+        for j in range(0, 16):
+            dist_16[i][j] = str_diff(gray_coding[16][i], gray_coding[16][j])
+    pprint.pprint(dist_4)
+    pprint.pprint(dist_8)
+    pprint.pprint(dist_16)
+    return dist_4, dist_8, dist_16
 
 def get_best(file_prefix, num):
     fname = file_prefix + str(num)
@@ -62,10 +81,13 @@ def get_best(file_prefix, num):
 if __name__ == "__main__":
     # get_best("dala", 4)
     # get_best("dala", 8)
-    get_best("dala", 16)
+    # get_best("dala", 16)
     
     # get_best("flexible", 4)
     # get_best("flexible", 8)
     # get_best("flexible", 16)
+    init_dist()
+    
+    
 
 

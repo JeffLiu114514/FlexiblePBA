@@ -1,3 +1,12 @@
+1. close the gap w/ reference to BER
+2. local search
+
+3. better coding than gray coding
+    seems theoretically impossible to keep the distance to diagonal at 1 for more than 1 hop.
+    i.e. find a graph traversal such that for each node, the next traversed node must has a neighbor that has an edge with current node.
+    My neighbor's neighbor can't be my neighbor?
+
+
 16 levels' raw_ber is worse than original dala: because they consider the distance (string distance like between "0001" and "0010")
 BER in algo is the upper bound for error, while raw_ber is calculated like variance. Our approach does not improve raw_ber in the first place.
 
@@ -22,7 +31,7 @@ BER reduction for level16 = -0.004031551270814965
  'dala16': ['RS', 1.3157894736842106, 450, 342, 109, 9, 9.29077822870679e-15],
  'dala4': ['RS', 1.002202643171806, 455, 454, 2, 9, 0.0],
  'dala8': ['RS', 1.091127098321343, 455, 417, 39, 9, 3.1108264639185265e-15],
- 'flexible16': ['RS',
+ 'flexible16': 0['RS',
                 1.316715542521994,
                 449,
                 341,

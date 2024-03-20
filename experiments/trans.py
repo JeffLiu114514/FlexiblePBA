@@ -43,11 +43,11 @@ def report_results(filename_prefix, hint):
 
 def report_drift_reduction(queries):
     for item in queries:
-        our, sba, hint = item
-        assert len(our) == len(sba)
+        our, pba, hint = item
+        assert len(our) == len(pba)
         reduce_list = []
         for i in range(4, 17):
-            reduce_list.append((sba[i] - our[i]) / sba[i])
+            reduce_list.append((pba[i] - our[i]) / pba[i])
         reduce_avg = sum(reduce_list) / len(reduce_list)
         print(f"{hint} Drift Reduction", reduce_list)
         print(f"{hint} Average Drift Reduction", reduce_avg)
@@ -112,7 +112,7 @@ def report_ber(filename_prefix, level_list, hint=None):
         res.append(ber_avg)
     return res
 
-def report_ber_sample(filename_prefix, level_list, sample_sizes, hint=None):
+def report_ber_sample(filename_prefix, level_list, sample_sizes, hint=None, sample_method="random"):
     res = []
     skip = []
     for i in level_list:
@@ -131,7 +131,7 @@ def report_ber_sample(filename_prefix, level_list, sample_sizes, hint=None):
             assert False
         for sample_size in sample_sizes:
             try:
-                fname = directory + filename_prefix + str(i) + "_" + str(sample_size)
+                fname = directory + filename_prefix + str(i) + "_" + str(sample_size) + "_" + sample_method
                 matrix = get_matrix_from_file(fname)
                 ber_matrix = np.multiply(matrix, dist) / i
                 # pprint.pprint(ber_matrix)
@@ -148,36 +148,43 @@ def report_ber_sample(filename_prefix, level_list, sample_sizes, hint=None):
                 continue
     return res, skip
 
-def report_ber_reduction_sample(our, sba, hint, sample_sizes):
-    assert len(our) == len(sba)
-    index = 0
+def report_ber_reduction_sample(our, pba, hint, sample_sizes):
+    # assert len(our) == len(pba)
     reductions = {}
     for i in range(0, len(hint)):
         sample_reduction = []
         for sample_size in sample_sizes:
-            # print(index)
-            # print(sba[index])
-            # print(our[index])
-            reduction = (sba[index] - our[index]) / sba[index]
-            sample_reduction.append(reduction)
-            print(f"BER reduction for level{hint[i]}_{sample_size} =", reduction)
-            index += 1
+            try:
+                pba_ber = pba[sample_size]
+                our_ber = our[sample_size]
+                reduction = (pba_ber - our_ber) / pba_ber
+                sample_reduction.append(reduction)
+                print(f"BER reduction for level{hint[i]}_{sample_size} =", reduction)
+            except KeyError as e:
+                # print(e)
+                continue
         reductions[hint[i]] = sample_reduction
     return reductions
         
-def report_ber_reduction(our, sba, hint):
-    assert len(our) == len(sba)
+def report_ber_reduction(our, pba, hint):
+    assert len(our) == len(pba)
     for i in range(0, len(our)):
-        print(f"BER reduction for level{hint[i]} =", (sba[i] - our[i]) / sba[i])
+        print(f"BER reduction for level{hint[i]} =", (pba[i] - our[i]) / pba[i])
 
-def trans_sample(level_list, sample_sizes):
+def trans_sample(level_list, sample_sizes, sample_method="random"):
     init_dist()
     print("raw_ber = {\\")
-    pba_ber, skip = report_ber_sample("dala", level_list, sample_sizes)
-    fpba_ber, skip = report_ber_sample("flexible", level_list, sample_sizes)
+    pba_ber, pba_skip = report_ber_sample("dala", level_list, sample_sizes, sample_method)
+    fpba_ber, fpba_skip = report_ber_sample("flexible", level_list, sample_sizes, sample_method)
     print("}")
-    sample_sizes = [item for item in sample_sizes if item not in skip]
-    reductions = report_ber_reduction_sample(fpba_ber, pba_ber, list(map(str, level_list)), sample_sizes)
+    
+    pba_sample_sizes = [item for item in sample_sizes if item not in pba_skip]
+    fpba_sample_sizes = [item for item in sample_sizes if item not in fpba_skip]
+    pba_dict = dict(zip(pba_sample_sizes, pba_ber))
+    fpba_dict = dict(zip(fpba_sample_sizes, fpba_ber))
+
+    reductions = report_ber_reduction_sample(fpba_dict, pba_dict, list(map(str, level_list)), sample_sizes)
+    sample_sizes = list(set(pba_sample_sizes) & set(fpba_sample_sizes))
     for i in level_list:
         plt.plot(sample_sizes, reductions[str(i)], marker='o')
         plt.xlabel('sample sizes')
@@ -197,14 +204,14 @@ def trans(level_list):
 
 
 if __name__ == "__main__":
-    # ours_drift = report_results("flexible_dala", "sba_res")
-    # sba_drift = report_results("dala", "our_res")
-    # our_sigma = report_results("SBAvar", "sba_our_search")
-    # our_norm = report_results("SBAmeanvar", "sba_our_search_mean")
-    # report_drift_reduction([(ours_drift, sba_drift, "Overall"), 
+    # ours_drift = report_results("flexible_dala", "pba_res")
+    # pba_drift = report_results("dala", "our_res")
+    # our_sigma = report_results("SBAvar", "pba_our_search")
+    # our_norm = report_results("SBAmeanvar", "pba_our_search_mean")
+    # report_drift_reduction([(ours_drift, pba_drift, "Overall"), 
     #                         (ours_drift, our_sigma, "RDR"), 
     #                         (ours_drift, our_norm, "Non-Normal")])
 # we should use this file for final results reported in the paper
 # instead of scheme_analyze.py (which is non-uniform weighted average)
-    trans_sample([8, 16], range(15, 100))
-    # trans([4, 8, 16])
+    trans_sample([8, 16], range(15, 100), sample_method="random")
+    # trans([8, 16])
