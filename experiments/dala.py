@@ -89,26 +89,30 @@ def flexible_refine(level_alloc, specified_levels, distributions):
     vanilla = copy.deepcopy(level_alloc)
     level_alloc = refine(level_alloc)
     print("vanilla: ", vanilla)
+    print("naive refine: ", level_alloc)
     
     dist_4, dist_8, dist_16 = init_dist()
-    min_ber = get_ber_for_allocs(level_alloc, distributions, specified_levels, dist_4, dist_8, dist_16)
+    
     for i in range(1, len(vanilla)):
         assert level_alloc[i - 1][1] <= level_alloc[i][0]
-        for j in range(vanilla[i - 1][0] + 1, vanilla[i][1]):
+        min_ber = get_ber_for_allocs(level_alloc, distributions, specified_levels, dist_4, dist_8, dist_16)
+        best_j = level_alloc[i - 1][1]
+        for j in range(vanilla[i - 1][0], vanilla[i][1]):
             level_alloc[i - 1][1] = j
             level_alloc[i][0] = j
             ber = get_ber_for_allocs(level_alloc, distributions, specified_levels, dist_4, dist_8, dist_16)
             print(j, ber)
+            # print(level_alloc)
             if ber < min_ber:
                 min_ber = ber
+                best_j = j
             else:
-                level_alloc[i - 1][1] = vanilla[i - 1][1]
-                level_alloc[i][0] = vanilla[i][0]
+                level_alloc[i - 1][1] = best_j
+                level_alloc[i][0] = best_j
                 continue
     level_alloc[0][0] = 0
     level_alloc[len(level_alloc)-1][1] = 64
-    print("vanilla: ", vanilla)
-    print("naive refine: ", level_alloc)
+
     print("flexible refine", level_alloc)
     print("BER: ", min_ber)
     return level_alloc

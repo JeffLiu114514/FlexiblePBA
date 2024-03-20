@@ -39,6 +39,8 @@ def minimal_BER(specified_levels, eps, distributions, low_BER = 0, high_BER = 1,
     #   we need to allocate 8 levels then half the levels
     if double:
         specified_levels = specified_levels * 2
+    
+    # ratios_lists = []
     while high_BER - low_BER > eps:
         cur_BER = (low_BER + high_BER) / 2
         
@@ -60,11 +62,14 @@ def minimal_BER(specified_levels, eps, distributions, low_BER = 0, high_BER = 1,
             if len(temp_levels) == 0:
                 break
             confirmed_level, anchor = find_leftmost(temp_levels)
+            # anchor += 1
+            
             if PRINT_ANCHOR:
                 print("confirmed level and anchor:", confirmed_level[0], confirmed_level[1],confirmed_level[3],confirmed_level[4], anchor)
 
             result_level.append([confirmed_level[0], confirmed_level[1], confirmed_level[3], confirmed_level[4]])
             cur_levels = temp_levels   
+            
         
         cur_levels = result_level
         if DEBUG: print(len(cur_levels), cur_BER)
@@ -75,13 +80,29 @@ def minimal_BER(specified_levels, eps, distributions, low_BER = 0, high_BER = 1,
         else:
             high_BER = cur_BER
             best_level, best_BER = cur_levels, cur_BER
+            
+            
+            # if flexible_refine_flag:
+            #     # print("current gamma: ", cur_BER)
+            #     # print("current level: ", cur_levels)
+            #     refined, min_ber = flexible_refine(cur_levels, specified_levels, distributions)
+            #     ratios_lists.append({"gamma": cur_BER, "level": refined, "min_ber": min_ber})
+            # else:
+            #     refined = refine(cur_levels)
+        
     if double:
         best_level = half(best_level)
-        
+    
     if flexible_refine_flag:
+        # print("current gamma: ", cur_BER)
         refined = flexible_refine(best_level, specified_levels, distributions)
     else:
         refined = refine(best_level)
+
+    # for item in enumerate(ratios_lists):
+    #     print(item)
+    #     print()
+    
     if DEBUG: print(refined, best_BER)
     assert len(refined) == specified_levels / 2 if double else specified_levels
     return refined, best_BER
@@ -136,29 +157,35 @@ def flexible_refine(level_alloc, specified_levels, distributions):
     '''
     
     vanilla = copy.deepcopy(level_alloc)
-    print("vanilla: ", vanilla)
     level_alloc = refine(level_alloc)
+    print("vanilla: ", vanilla)
     print("naive refine: ", level_alloc)
     
     dist_4, dist_8, dist_16 = init_dist()
-    min_ber = get_ber_for_allocs(level_alloc, distributions, specified_levels, dist_4, dist_8, dist_16)
+    
     for i in range(1, len(vanilla)):
         assert level_alloc[i - 1][1] <= level_alloc[i][0]
-        for j in range(vanilla[i - 1][1] + 1, vanilla[i][0]):
+        min_ber = get_ber_for_allocs(level_alloc, distributions, specified_levels, dist_4, dist_8, dist_16)
+        best_j = level_alloc[i - 1][1]
+        for j in range(vanilla[i - 1][0], vanilla[i][1]):
             level_alloc[i - 1][1] = j
             level_alloc[i][0] = j
             ber = get_ber_for_allocs(level_alloc, distributions, specified_levels, dist_4, dist_8, dist_16)
-            print(j, ber)
+            # print(j, ber)
+            # print(level_alloc)
             if ber < min_ber:
                 min_ber = ber
+                best_j = j
             else:
+                level_alloc[i - 1][1] = best_j
+                level_alloc[i][0] = best_j
                 continue
     level_alloc[0][0] = 0
     level_alloc[len(level_alloc)-1][1] = 64
-    
-    print("flexible refine", level_alloc)
-    print("BER: ", min_ber)
-    return level_alloc
+
+    # print("flexible refine", level_alloc)
+    # print("BER: ", min_ber)
+    return level_alloc, min_ber
 
 def half(level_alloc):
     assert len(level_alloc) % 2 == 0
@@ -206,17 +233,17 @@ def dump_to_json(level_alloc):
 
 if __name__ == "__main__":
     distributions = init_model()
-    # refined, best_BER = minimal_BER(4, 1e-3, distributions, 0, 1, True)
+    # refined, best_BER = minimal_BER(4, 1e-3, distributions, 0, 1, True, True)
     # dump_to_json(refined)
-    refined, best_BER = minimal_BER(8, 1e-3, distributions, flexible_refine_flag=False)
-    print(refined, best_BER)
-    refined, best_BER = minimal_BER(8, 1e-3, distributions, flexible_refine_flag=True)
+    # refined, best_BER = minimal_BER(8, 1e-3, distributions, flexible_refine_flag=False)
+    # print(refined, best_BER)
+    refined, best_BER = minimal_BER(8, 1e-10, distributions, flexible_refine_flag=True)
     print(refined, best_BER)
     
-    refined, best_BER = minimal_BER(16, 1e-3, distributions, flexible_refine_flag=False)
-    print(refined, best_BER)
-    refined, best_BER = minimal_BER(16, 1e-3, distributions, flexible_refine_flag=True)
-    print(refined, best_BER)
+    # refined, best_BER = minimal_BER(16, 1e-3, distributions, flexible_refine_flag=False)
+    # print(refined, best_BER)
+    # refined, best_BER = minimal_BER(16, 1e-3, distributions, flexible_refine_flag=True)
+    # print(refined, best_BER)
     
     # dump_to_json(refined)
     # dump_to_json(minimal_BER(16, 1e-10))
