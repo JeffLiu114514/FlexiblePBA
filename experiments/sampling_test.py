@@ -4,6 +4,7 @@ from flexible_dala import read_from_json, write_to_json, init_model
 from dala_genmatrix import simulate_error, dump_matrix_sample
 import random
 import numpy as np
+from scipy.stats import ttest_1samp
 import matplotlib.pyplot as plt
 
 def dump_to_json(level_alloc, algo_name):
@@ -96,6 +97,7 @@ if __name__ == "__main__":
     sample_method="random" #"uniform" or "random"
     num_trails = 50
     dist_4, dist_8, dist_16 = init_dist()
+    PRINT_LOG = False
     
     # print("----------------------------")
     # print(f"Running for 4 levels")
@@ -119,6 +121,7 @@ if __name__ == "__main__":
         print(f"Running for {n} levels")
         
         ber_reduction_list = {}
+        stats_significance = {}
         
         for sample_size in range(15, 100):
             dala_ber_list = []
@@ -126,16 +129,16 @@ if __name__ == "__main__":
             for i in range(num_trails):
                 try:
                     sample_distribution = sample_distributions(distributions, sample_size, sample_method=sample_method)
-                    print(f"Sample size: {sample_size}%")
+                    if PRINT_LOG: print(f"Sample size: {sample_size}%")
                     
-                    print("dala")
+                    if PRINT_LOG: print("dala")
                     dala_refined, dala_best_BER = dala_minimal_BER(n, eps, sample_distribution)
                     dala_P = simulate_error(dala_refined, distributions)
                     # dump_matrix_sample(P, outfile + "dala", sample_size, suffix=sample_method)
                     dala_ber = report_ber(dala_P, n, dist_4, dist_8, dist_16)
                     
-                    print("flexible_dala")
-                    flexible_refined, flexible_best_BER = flexible_dala_minimal_BER(n, eps, sample_distribution)
+                    if PRINT_LOG: print("flexible_dala")
+                    flexible_refined, flexible_best_BER, _ = flexible_dala_minimal_BER(n, eps, sample_distribution)
                     fdala_P = simulate_error(flexible_refined, distributions)
                     # dump_matrix_sample(P, outfile + "flexible", sample_size, suffix=sample_method)
                     fdala_ber = report_ber(fdala_P, n, dist_4, dist_8, dist_16)
@@ -146,14 +149,18 @@ if __name__ == "__main__":
                     # fkey = f"{n}_{sample_size}"
                     # results[(n, sample_size)] = {"dala": (dala_refined, dala_best_BER), "flexible_dala": (flexible_refined, flexible_best_BER)} # (n, sample_size)
                 except UnboundLocalError as e:
-                    print(f"Sample size: {sample_size}%")
-                    print(f"Error: {e}")
+                    if PRINT_LOG: print(f"Sample size: {sample_size}%")
+                    if PRINT_LOG: print(f"Error: {e}")
                     continue
             
             if len(dala_ber_list) == 0 or len(fdala_ber_list) == 0:
                 continue
             assert len(dala_ber_list) == len(fdala_ber_list)
-            ber_reduction = [(dala_ber_list[j] - fdala_ber_list[j]) / dala_ber_list[j] for j in range(len(dala_ber_list))]
+            
+            
+            ber_reduction = [(dala_ber_list[j] - fdala_ber_list[j]) for j in range(len(dala_ber_list))]# / dala_ber_list[j]
+            t_stat, p_value = ttest_1samp(ber_reduction, 0, alternative='greater')
+            stats_significance[sample_size] = p_value
             # print(dala_ber_list)
             # print(fdala_ber_list)
             # print(ber_reduction)
@@ -161,16 +168,30 @@ if __name__ == "__main__":
         
         results[n] = ber_reduction_list
         
+        ber_reduction_values = []
         for key, value in ber_reduction_list.items():
-            print(key, value)
-            print()
+            if PRINT_LOG: print(key, value)
+            if PRINT_LOG: print()
+            ber_reduction_values.append(value[0])
         
-        plt.errorbar(ber_reduction_list.keys(), [v[0] for v in ber_reduction_list.values()], yerr=[v[1] for v in ber_reduction_list.values()], marker='o')
-        # plt.plot(ber_reduction_list.keys(), ber_reduction_list.values(), marker='o')
-        plt.xlabel('sample sizes')
-        plt.ylabel('BER reductions')
-        plt.title(f'{n}-level BER reductions')
-        plt.show()
+        t_stat, p_value = ttest_1samp(ber_reduction_values, 0, alternative='greater') # Change the condition to 'greater'
+        significance = "significant" if p_value < 0.05 else "not significant"
+        print(f"Average BER reduction for {n} levels sampling with {num_trails} trails has p value of {p_value} and is {significance}")
+        for key, value in stats_significance.items():
+            if value < 0.05:
+                print(f"Sample size {key} has p value of {value} and is significant")
+            else:
+                print(f"Sample size {key} has p value of {value} and is not significant")
+        
+        
+        # plt.errorbar(ber_reduction_list.keys(), [v[0] for v in ber_reduction_list.values()], yerr=[v[1] for v in ber_reduction_list.values()], marker='o')
+        # # plt.plot(ber_reduction_list.keys(), ber_reduction_list.values(), marker='o')
+        # plt.xlabel('sample sizes')
+        # plt.ylabel('BER reductions')
+        # plt.title(f'{n}-level BER reductions')
+        # plt.show()
+        
+        # plt.plot()
             
     
     

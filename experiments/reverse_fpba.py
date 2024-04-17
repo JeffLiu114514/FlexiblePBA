@@ -20,96 +20,51 @@ def init_model():
     # print(distributions)
     return distributions
 
-def find_leftmost(levels):
-    sorted_levels = sorted(levels, key=lambda x: x[1])
-    return sorted_levels[0], sorted_levels[0][1]
+def find_rightmost(levels):
+    sorted_levels = sorted(levels, key=lambda x: x[0])
+    return sorted_levels[-1], sorted_levels[-1][0]
     
 def update(R, anchor, xl, xh, BER):
-    left_perc = bisect.bisect_left(R, anchor) / len(R)
-    if left_perc > BER:
-        return xl, 2*MAX_RES
-    num_discard = int((BER - left_perc) * len(R))
+    right_perc = 1 - (bisect.bisect_right(R, anchor) / len(R))
+    if right_perc > BER:
+        return -1, xh
+    num_discard = int((BER - right_perc) * len(R))
     if num_discard == 0:
-        return anchor, R[-1] + 1
-    return anchor, R[-num_discard] + 1
-
-
-def linear_search_BER(specified_levels, eps, distributions, low_BER = 0, high_BER = 1):
-    ratios_lists = []
-    for cur_BER in range(low_BER, high_BER, eps):
-        result_level = []
-        cur_levels = candidate_gen(cur_BER, distributions)
-        confirmed_level, anchor = find_leftmost(cur_levels)
-        if PRINT_ANCHOR:
-            print("confirmed level and anchor:", confirmed_level[0], confirmed_level[1], anchor)
-        result_level.append([confirmed_level[0], confirmed_level[1], confirmed_level[3], confirmed_level[4]])
-        while anchor <= MAX_RES+1:
-            temp_levels = []
-            for cur_level in cur_levels:
-                Rlow, Rhigh, RelaxDistr, tmin, tmax = cur_level
-                if Rlow < anchor:
-                    Rlow, Rhigh = update(RelaxDistr, anchor, Rlow, Rhigh, cur_BER)
-                if Rlow >= anchor:
-                    temp_levels.append([Rlow, Rhigh, RelaxDistr, tmin, tmax])
-            if len(temp_levels) == 0:
-                break
-            confirmed_level, anchor = find_leftmost(temp_levels)
-            # anchor += 1
-            
-            if PRINT_ANCHOR:
-                print("confirmed level and anchor:", confirmed_level[0], confirmed_level[1],confirmed_level[3],confirmed_level[4], anchor)
-
-            result_level.append([confirmed_level[0], confirmed_level[1], confirmed_level[3], confirmed_level[4]])
-            cur_levels = temp_levels   
-            
-        
-        cur_levels = result_level
-        if DEBUG: print(len(cur_levels), cur_BER)
-        if len(cur_levels) < specified_levels: # the precision requirement is too strict to be met
-            low_BER = cur_BER # make next BER bigger
-        elif len(cur_levels) > specified_levels:
-            high_BER = cur_BER
-        else:
-            high_BER = cur_BER
-            best_level, best_BER = cur_levels, cur_BER
-            ratios_lists.append({"gamma": cur_BER, "level": refine(best_level)})
+        return R[0]-1, anchor
+    return R[num_discard]-1, anchor
+    
 
 def minimal_BER(specified_levels, eps, distributions, low_BER = 0, high_BER = 1, flexible_refine_flag=False, double=False):
     # rationale for double: for 4 levels with insufficient data to characterize the error
     #   we need to allocate 8 levels then half the levels
     if double:
         specified_levels = specified_levels * 2
-    
-    ratios_lists = []
     while high_BER - low_BER > eps:
         cur_BER = (low_BER + high_BER) / 2
         
         # flexible greedy algorithm
         result_level = []
         cur_levels = candidate_gen(cur_BER, distributions)
-        confirmed_level, anchor = find_leftmost(cur_levels)
+        confirmed_level, anchor = find_rightmost(cur_levels)
         if PRINT_ANCHOR:
             print("confirmed level and anchor:", confirmed_level[0], confirmed_level[1], anchor)
         result_level.append([confirmed_level[0], confirmed_level[1], confirmed_level[3], confirmed_level[4]])
-        while anchor <= MAX_RES+1:
+        while anchor >= 0:
             temp_levels = []
             for cur_level in cur_levels:
                 Rlow, Rhigh, RelaxDistr, tmin, tmax = cur_level
-                if Rlow < anchor:
+                if Rhigh > anchor:
                     Rlow, Rhigh = update(RelaxDistr, anchor, Rlow, Rhigh, cur_BER)
-                if Rlow >= anchor:
+                if Rhigh <= anchor:
                     temp_levels.append([Rlow, Rhigh, RelaxDistr, tmin, tmax])
             if len(temp_levels) == 0:
                 break
-            confirmed_level, anchor = find_leftmost(temp_levels)
-            # anchor += 1
-            
+            confirmed_level, anchor = find_rightmost(temp_levels)
             if PRINT_ANCHOR:
                 print("confirmed level and anchor:", confirmed_level[0], confirmed_level[1],confirmed_level[3],confirmed_level[4], anchor)
 
             result_level.append([confirmed_level[0], confirmed_level[1], confirmed_level[3], confirmed_level[4]])
             cur_levels = temp_levels   
-            
         
         cur_levels = result_level
         if DEBUG: print(len(cur_levels), cur_BER)
@@ -120,43 +75,30 @@ def minimal_BER(specified_levels, eps, distributions, low_BER = 0, high_BER = 1,
         else:
             high_BER = cur_BER
             best_level, best_BER = cur_levels, cur_BER
-            ratios_lists.append({"gamma": cur_BER, "level": refine(best_level)})
-            
-            # if flexible_refine_flag:
-            #     # print("current gamma: ", cur_BER)
-            #     # print("current level: ", cur_levels)
-            #     refined, min_ber = flexible_refine(cur_levels, specified_levels, distributions)
-            #     ratios_lists.append({"gamma": cur_BER, "level": refined, "min_ber": min_ber})
-            # else:
-            #     refined = refine(cur_levels)
-        
     if double:
         best_level = half(best_level)
     
+    best_level = list(reversed(best_level))
     if flexible_refine_flag:
-        # print("current gamma: ", cur_BER)
         refined = flexible_refine(best_level, specified_levels, distributions)
     else:
         refined = refine(best_level)
-
     if DEBUG: print(refined, best_BER)
     assert len(refined) == specified_levels / 2 if double else specified_levels
-    return refined, best_BER, ratios_lists
+    return refined, best_BER
 
 def maximal_BER(specified_levels, eps, distributions, low_BER = 0, high_BER = 1, flexible_refine_flag=False, double=False):
     # rationale for double: for 4 levels with insufficient data to characterize the error
     #   we need to allocate 8 levels then half the levels
     if double:
         specified_levels = specified_levels * 2
-    
-    ratios_lists = []
     while high_BER - low_BER > eps:
         cur_BER = (low_BER + high_BER) / 2
         
         # flexible greedy algorithm
         result_level = []
         cur_levels = candidate_gen(cur_BER, distributions)
-        confirmed_level, anchor = find_leftmost(cur_levels)
+        confirmed_level, anchor = find_rightmost(cur_levels)
         if PRINT_ANCHOR:
             print("confirmed level and anchor:", confirmed_level[0], confirmed_level[1], anchor)
         result_level.append([confirmed_level[0], confirmed_level[1], confirmed_level[3], confirmed_level[4]])
@@ -170,15 +112,12 @@ def maximal_BER(specified_levels, eps, distributions, low_BER = 0, high_BER = 1,
                     temp_levels.append([Rlow, Rhigh, RelaxDistr, tmin, tmax])
             if len(temp_levels) == 0:
                 break
-            confirmed_level, anchor = find_leftmost(temp_levels)
-            # anchor += 1
-            
+            confirmed_level, anchor = find_rightmost(temp_levels)
             if PRINT_ANCHOR:
                 print("confirmed level and anchor:", confirmed_level[0], confirmed_level[1],confirmed_level[3],confirmed_level[4], anchor)
 
             result_level.append([confirmed_level[0], confirmed_level[1], confirmed_level[3], confirmed_level[4]])
             cur_levels = temp_levels   
-            
         
         cur_levels = result_level
         if DEBUG: print(len(cur_levels), cur_BER)
@@ -189,21 +128,17 @@ def maximal_BER(specified_levels, eps, distributions, low_BER = 0, high_BER = 1,
         else:
             low_BER = cur_BER
             best_level, best_BER = cur_levels, cur_BER
-            ratios_lists.append({"gamma": cur_BER, "level": refine(best_level)})
-        
     if double:
         best_level = half(best_level)
     
+    best_level = list(reversed(best_level))
     if flexible_refine_flag:
-        # print("current gamma: ", cur_BER)
         refined = flexible_refine(best_level, specified_levels, distributions)
     else:
         refined = refine(best_level)
-    
-
     if DEBUG: print(refined, best_BER)
     assert len(refined) == specified_levels / 2 if double else specified_levels
-    return refined, best_BER, ratios_lists
+    return refined, best_BER
 
 
 def candidate_gen(BER, distributions):
@@ -211,7 +146,7 @@ def candidate_gen(BER, distributions):
         print(BER, "Started")
     levels = []
     flag = False
-    for tmin in range(0, 60):
+    for tmin in range(59, -1, -1):
         tmax = tmin + 4
         RelaxDistr = distributions[(tmin, tmax)]
         # if DEBUG:
@@ -228,8 +163,8 @@ def getReadRange(vals, BER):
     # The read range [Rmin, Rmax) -- any point within [Rmin, Rmax) are within this level
     num_discard = int(BER * len(vals))
     if num_discard == 0:
-        return vals[0], vals[-1] + 1
-    return vals[0], vals[-num_discard] + 1
+        return vals[0]-1, vals[-1]
+    return vals[num_discard]-1, vals[-1]
 
 
 def refine(level_alloc):
@@ -242,11 +177,12 @@ def refine(level_alloc):
     '''
     # print("before refine", level_alloc)
     for i in range(1, len(level_alloc)):
+        # print(level_alloc)
         assert level_alloc[i - 1][1] <= level_alloc[i][0] 
         merge = int((level_alloc[i - 1][1] + level_alloc[i][0]) / 2)
         level_alloc[i - 1][1] = merge
         level_alloc[i][0] = merge
-    level_alloc[0][0] = 0
+    level_alloc[0][0] = -1
     level_alloc[len(level_alloc)-1][1] = 64
     return level_alloc
 
@@ -256,35 +192,29 @@ def flexible_refine(level_alloc, specified_levels, distributions):
     '''
     
     vanilla = copy.deepcopy(level_alloc)
+    print("vanilla: ", vanilla)
     level_alloc = refine(level_alloc)
-    # print("vanilla: ", vanilla)
-    # print("naive refine: ", level_alloc)
+    print("naive refine: ", level_alloc)
     
     dist_4, dist_8, dist_16 = init_dist()
-    
+    min_ber = get_ber_for_allocs(level_alloc, distributions, specified_levels, dist_4, dist_8, dist_16)
     for i in range(1, len(vanilla)):
         assert level_alloc[i - 1][1] <= level_alloc[i][0]
-        min_ber = get_ber_for_allocs(level_alloc, distributions, specified_levels, dist_4, dist_8, dist_16)
-        best_j = level_alloc[i - 1][1]
-        for j in range(vanilla[i - 1][0], vanilla[i][1]):
+        for j in range(vanilla[i - 1][1] + 1, vanilla[i][0]):
             level_alloc[i - 1][1] = j
             level_alloc[i][0] = j
             ber = get_ber_for_allocs(level_alloc, distributions, specified_levels, dist_4, dist_8, dist_16)
-            # print(j, ber)
-            # print(level_alloc)
+            print(j, ber)
             if ber < min_ber:
                 min_ber = ber
-                best_j = j
             else:
-                level_alloc[i - 1][1] = best_j
-                level_alloc[i][0] = best_j
                 continue
     level_alloc[0][0] = 0
     level_alloc[len(level_alloc)-1][1] = 64
-
-    # print("flexible refine", level_alloc)
-    # print("BER: ", min_ber)
-    return level_alloc, min_ber
+    
+    print("flexible refine", level_alloc)
+    print("BER: ", min_ber)
+    return level_alloc
 
 def half(level_alloc):
     assert len(level_alloc) % 2 == 0
@@ -330,79 +260,19 @@ def dump_to_json(level_alloc):
     write_to_json(bpc, f"tests/{bits_per_cell}bpc_flexible_dala_{date}.json")
 
 
-def get_alloc_ber_by_gamma(cur_BER, specified_levels, distributions):
-    result_level = []
-    cur_levels = candidate_gen(cur_BER, distributions)
-    confirmed_level, anchor = find_leftmost(cur_levels)
-    if PRINT_ANCHOR:
-        print("confirmed level and anchor:", confirmed_level[0], confirmed_level[1], anchor)
-    result_level.append([confirmed_level[0], confirmed_level[1], confirmed_level[3], confirmed_level[4]])
-    while anchor <= MAX_RES+1:
-        temp_levels = []
-        for cur_level in cur_levels:
-            Rlow, Rhigh, RelaxDistr, tmin, tmax = cur_level
-            if Rlow < anchor:
-                Rlow, Rhigh = update(RelaxDistr, anchor, Rlow, Rhigh, cur_BER)
-            if Rlow >= anchor:
-                temp_levels.append([Rlow, Rhigh, RelaxDistr, tmin, tmax])
-        if len(temp_levels) == 0:
-            break
-        confirmed_level, anchor = find_leftmost(temp_levels)
-        # anchor += 1
-        
-        if PRINT_ANCHOR:
-            print("confirmed level and anchor:", confirmed_level[0], confirmed_level[1],confirmed_level[3],confirmed_level[4], anchor)
-
-        result_level.append([confirmed_level[0], confirmed_level[1], confirmed_level[3], confirmed_level[4]])
-        cur_levels = temp_levels   
-        
-    
-    cur_levels = result_level
-    best_levels, min_ber = flexible_refine(cur_levels, specified_levels, distributions)
-    return best_levels, min_ber
-
-
 if __name__ == "__main__":
     distributions = init_model()
-    specified_levels = 16
-    
-    # refined, best_BER = minimal_BER(4, 1e-3, distributions, 0, 1, True, True)
+    # refined, best_BER = minimal_BER(4, 1e-3, distributions, 0, 1, True)
     # dump_to_json(refined)
-    # refined, best_BER, ratios_lists_min = minimal_BER(8, 1e-5, distributions, flexible_refine_flag=False)
+    refined, best_BER = minimal_BER(8, 1e-5, distributions, flexible_refine_flag=False)
+    print(refined, best_BER)
+    # refined, best_BER = minimal_BER(8, 1e-3, distributions, flexible_refine_flag=True)
     # print(refined, best_BER)
     
+    # refined, best_BER = minimal_BER(16, 1e-3, distributions, flexible_refine_flag=False)
+    # print(refined, best_BER)
+    # refined, best_BER = minimal_BER(16, 1e-3, distributions, flexible_refine_flag=True)
+    # print(refined, best_BER)
     
-    
-    refined, best_BER, ratios_lists_min = minimal_BER(specified_levels, 1e-10, distributions, flexible_refine_flag=False)
-    refined, best_BER, ratios_lists_max = maximal_BER(specified_levels, 1e-10, distributions, flexible_refine_flag=False)
-    gamma_list = [i["gamma"] for i in ratios_lists_min+ratios_lists_max]
-    print(f"min and max gamma for {specified_levels}-level allocation: ", min(gamma_list), max(gamma_list))
-    
-    gamma_list = [i/10000 for i in range(int(min(gamma_list)*10000)+1, int(max(gamma_list)*10000)+1)]
-    min_ber_list = []
-    for gamma in gamma_list:
-        refined, min_ber = get_alloc_ber_by_gamma(gamma, specified_levels, distributions)
-        min_ber_list.append(min_ber)
-    
-    import matplotlib.pyplot as plt
-
-    plt.plot(gamma_list, min_ber_list)
-    plt.xlabel('Gamma')
-    plt.ylabel('Min BER')
-    plt.title('Min BER vs Gamma')
-    plt.show()
-    # dist_4, dist_8, dist_16 = init_dist()
-    
-    # gammas = []
-    # bers = []
-    # for item in ratios_lists_min+ratios_lists_max:
-    #     gammas.append(item["gamma"])
-    #     bers.append(get_ber_for_allocs(item["level"], distributions, 8, dist_4, dist_8, dist_16))
-    # import matplotlib.pyplot as plt
-    # print(gammas)
-    # print(bers)
-    # plt.plot(gammas, bers, 'o')#, 'o'
-    # plt.xlabel('Gamma')
-    # plt.ylabel('BER')
-    # plt.title('BER vs Gamma')
-    # plt.show()
+    # dump_to_json(refined)
+    # dump_to_json(minimal_BER(16, 1e-10))

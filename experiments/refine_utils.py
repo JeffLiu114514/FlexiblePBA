@@ -37,6 +37,7 @@ def decide_end_level(point, level_alloc):
             return i
     if point == 64: # last level
         return len(level_alloc)-1
+    print(level_alloc)
     assert False, point
     
 def simulate_error(level_alloc, distributions):
