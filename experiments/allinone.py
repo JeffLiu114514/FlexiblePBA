@@ -57,11 +57,14 @@ def report_ber(matrix, n, dist_4, dist_8, dist_16):
     # res.append(ber_avg)
     return ber_avg
 
-# def get_ber_for_allocs(dala_alloc, distributions, n, dist_4, dist_8, dist_16):
-#     # dist_4, dist_8, dist_16 = init_dist()
-#     P = simulate_error(dala_alloc, distributions)
-#     ber = report_ber(P, n, dist_4, dist_8, dist_16)
-#     return ber
+def get_ber_for_allocs(dala_alloc, distributions, n):
+    dist_4, dist_8, dist_16 = init_dist()
+    P = simulate_error(dala_alloc, distributions)
+    ber = report_ber(P, n, dist_4, dist_8, dist_16)
+    return ber
+
+
+
 
 if __name__ == "__main__":
     distributions = init_model()

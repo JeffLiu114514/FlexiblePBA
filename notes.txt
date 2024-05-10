@@ -8,14 +8,9 @@
 
 
 TODO:
-1. make sure reverse fpba does what it should with left open intervels (also for next week)
-2. think of an algorithm that given gamma and n levels, find all allocations that work(extended fpba? dp?)
-
-
-2. linear search ber from lowest gamma to highest with n levels
-    if 2 is true, find allocations within the gamma range that minimize BER
-3. plot the additive difference between pba and fpba for random samples; 
-    maybe run statistical tests against whether there is any reduction in BER (1-sample t-test)
+1. test with different relaxations
+2. implement graph based one with fpba
+3. try exhaustive search
 
 
 16 levels' raw_ber is worse than original dala: because they consider the distance (string distance like between "0001" and "0010")

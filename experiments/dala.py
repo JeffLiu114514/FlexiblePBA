@@ -193,10 +193,10 @@ if __name__ == "__main__":
     
     refined, best_BER = minimal_BER(8, 1e-3, distributions, flexible_refine_flag=False)
     print(refined, best_BER)
-    refined, best_BER = minimal_BER(8, 1e-3, distributions, flexible_refine_flag=True)
-    print(refined, best_BER)
+    # refined, best_BER = minimal_BER(8, 1e-3, distributions, flexible_refine_flag=True)
+    # print(refined, best_BER)
     
-    refined, best_BER = minimal_BER(16, 1e-3, distributions, flexible_refine_flag=False)
-    print(refined, best_BER)
-    refined, best_BER = minimal_BER(16, 1e-3, distributions, flexible_refine_flag=True)
-    print(refined, best_BER)
+    # refined, best_BER = minimal_BER(16, 1e-3, distributions, flexible_refine_flag=False)
+    # print(refined, best_BER)
+    # refined, best_BER = minimal_BER(16, 1e-3, distributions, flexible_refine_flag=True)
+    # print(refined, best_BER)
