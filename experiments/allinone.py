@@ -66,9 +66,11 @@ def get_ber_for_allocs(dala_alloc, distributions, n):
 
 
 
+
+
 if __name__ == "__main__":
     distributions = init_model()
-    eps = 1e-5
+    eps = 1e-3
 
     results = {}
     level_list = [8, 16]
@@ -76,20 +78,23 @@ if __name__ == "__main__":
         # get level alloc
         print("----------------------------")
         print(f"Running for {n} levels")
+        
         print("dala")
         dala_refined, dala_best_BER = dala_minimal_BER(n, eps, distributions)
+        ber = get_ber_for_allocs(dala_refined, distributions, n)
+        print("dala ber: ", ber)
+        
+        print("dala + flexible refine")
+        dala_refined, dala_best_BER = dala_minimal_BER(n, eps, distributions, flexible_refine_flag=True)
+        ber = get_ber_for_allocs(dala_refined, distributions, n)
+        print("dala + flexible refine ber: ", ber)
+        
         print("flexible_dala")
-        flexible_refined, flexible_best_BER = flexible_dala_minimal_BER(n, eps, distributions)
+        flexible_refined, flexible_best_BER, _ = flexible_dala_minimal_BER(n, eps, distributions)
+        ber = get_ber_for_allocs(flexible_refined, distributions, n)
+        print("flexible_dala ber: ", ber)
         
-        # simulate error
-        dala_P = simulate_error(dala_refined, distributions)
-        fdala_P = simulate_error(flexible_refined, distributions)
-        
-        # report ber
-        dist_4, dist_8, dist_16 = init_dist()
-        dala_ber = report_ber(dala_P, n, dist_4, dist_8, dist_16)
-        fdala_ber = report_ber(fdala_P, n, dist_4, dist_8, dist_16)
-        
-        results[n] = {"fdala_ber": fdala_ber, "dala_ber": dala_ber}
-        
-    print(results)
+        print("flexible_dala + flexible refine")
+        flexible_refined, flexible_best_BER, _ = flexible_dala_minimal_BER(n, eps, distributions, flexible_refine_flag=True)
+        ber = get_ber_for_allocs(flexible_refined[0], distributions, n)
+        print("flexible_dala + flexible refine ber: ", ber)

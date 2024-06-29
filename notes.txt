@@ -6,12 +6,49 @@
     i.e. find a graph traversal such that for each node, the next traversed node must has a neighbor that has an edge with current node.
     My neighbor's neighbor can't be my neighbor?
 
+8 levels
+pba: 0.003795615468409586
+pba + flexible refine: 0.003795615468409586
+pba-graph: 0.0028850081699346407
+pba-graph + flexible refine: 0.0028850081699346407
+pba-graph + relaxing gamma(up to 5 times): 0.0028850081699346407
+pba-graph + flexible refine + relaxing gamma(up to 3 times): 0.0028850081699346407
+
+fpba: 0.003497753267973856
+fpba + flexible refine: 0.003344566993464052
+fpba-graph: 0.0028850081699346407
+fpba-graph + flexible refine: 0.0028850081699346407
+fpba-graph + relaxing gamma(up to 3 times):
+fpba + flexible refine + relaxing gamma(up to 3 times):
+
+16 levels
+pba: 0.03641365400326797
+pba + flexible refine: 0.03543709150326797
+pba-graph: 0.03596047794117647
+pba-graph + flexible refine: 0.03473817912581699
+pba-graph + relaxing gamma(up to 3 times): 
+pba-graph + flexible refine + relaxing gamma(up to 3 times):
+
+fpba: 0.036560457516339864
+fpba + flexible refine: 0.036557266135620915
+fpba-graph: taking too much memory
+fpba-graph + flexible refine: 
+fpba-graph + relaxing gamma(up to 3 times):
+fpba + flexible refine + relaxing gamma(up to 3 times):
+
+Questions:
+1. clique v.s. maximal clique?
+2. 16 levels are too many for graph cliques
+
+
 
 TODO:
-1. test with different relaxations
-2. implement graph based one with fpba
-3. try exhaustive search
+1. focus on ablation on pba
+2. reachout to Anjiang to see possibilities for more test data
 
+1. different combinations of: pba vs fpba; relaxing gamma vs exact min gamma; refine vs exhaustive refine; record all best allocations
+2. implement graph based one with fpba(just use all possible distribution ranges for each distribution)
+3. draw gamma vs ber for both pba and fpba
 
 16 levels' raw_ber is worse than original dala: because they consider the distance (string distance like between "0001" and "0010")
 BER in algo is the upper bound for error, while raw_ber is calculated like variance. Our approach does not improve raw_ber in the first place.
