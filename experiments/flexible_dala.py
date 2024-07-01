@@ -74,6 +74,7 @@ def linear_search_BER(specified_levels, eps, distributions, low_BER = 0, high_BE
             best_level, best_BER = cur_levels, cur_BER
             ratios_lists.append({"gamma": cur_BER, "level": refine(best_level)})
 
+
 def minimal_BER(specified_levels, eps, distributions, low_BER = 0, high_BER = 1, flexible_refine_flag=False, double=False):
     # rationale for double: for 4 levels with insufficient data to characterize the error
     #   we need to allocate 8 levels then half the levels
@@ -142,6 +143,7 @@ def minimal_BER(specified_levels, eps, distributions, low_BER = 0, high_BER = 1,
     if DEBUG: print(refined, best_BER)
     assert len(refined) == specified_levels / 2 if double else specified_levels
     return refined, best_BER, ratios_lists
+
 
 def maximal_BER(specified_levels, eps, distributions, low_BER = 0, high_BER = 1, flexible_refine_flag=False, double=False):
     # rationale for double: for 4 levels with insufficient data to characterize the error

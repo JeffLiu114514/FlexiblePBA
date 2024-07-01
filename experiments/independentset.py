@@ -1,6 +1,5 @@
 from dala import init_model, getReadRange, refine, flexible_refine, minimal_BER
 from flexible_dala import minimal_BER as flexible_dala_minimal_BER
-from flexible_dala import getReadRange as leftmost_readrange
 import networkx as nx
 import numpy as np
 import copy
@@ -186,7 +185,7 @@ if __name__ == "__main__":
     distributions = init_model()
     # gamma_relaxation = 1.5
     
-    num_levels = 8
+    num_levels = 16
     
     refined, dala_best_gamma = minimal_BER(num_levels, 1e-3, distributions)
     ber = get_ber_for_allocs(refined, distributions, num_levels)
@@ -203,18 +202,18 @@ if __name__ == "__main__":
     print("graph based dala")
     min_ber = {"ber": 1, "clique": None, "relaxation": None}
     best_clique, best_ber = dala_graph(num_levels, dala_best_gamma, distributions)
-    for relaxation in range(11, 31, 1):
-        gamma_relaxation = relaxation / 10
-        print("relaxation: ", gamma_relaxation)
-        best_clique, best_ber = dala_graph(8, dala_best_gamma*gamma_relaxation, distributions)
-        if best_ber < min_ber["ber"]:
-            min_ber["ber"] = best_ber
-            min_ber["clique"] = best_clique
-            min_ber["relaxation"] = gamma_relaxation
+    # for relaxation in range(11, 31, 1):
+    #     gamma_relaxation = relaxation / 10
+    #     print("relaxation: ", gamma_relaxation)
+    #     best_clique, best_ber = dala_graph(8, dala_best_gamma*gamma_relaxation, distributions)
+    #     if best_ber < min_ber["ber"]:
+    #         min_ber["ber"] = best_ber
+    #         min_ber["clique"] = best_clique
+    #         min_ber["relaxation"] = gamma_relaxation
             
     # print("graph based flexible dala")
     # min_ber = {"ber": 1, "clique": None, "relaxation": None}
-    # best_clique, best_ber = fdala_graph(num_levels, dala_best_gamma, distributions)
+    # best_clique, best_ber = fdala_graph(num_levels, fdala_best_gamma, distributions)
     # for relaxation in range(11, 12, 1):
     #     gamma_relaxation = relaxation / 10
     #     print("relaxation: ", gamma_relaxation)
