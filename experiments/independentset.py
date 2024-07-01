@@ -200,21 +200,21 @@ if __name__ == "__main__":
     print("fdala alloc: ", refined)
     print("dala ber: ", ber)
     
-    # print("graph based dala")
-    # min_ber = {"ber": 1, "clique": None, "relaxation": None}
-    # best_clique, best_ber = dala_graph(num_levels, dala_best_gamma, distributions)
-    # for relaxation in range(30, 50, 1):
-    #     gamma_relaxation = relaxation / 10
-    #     print("relaxation: ", gamma_relaxation)
-    #     best_clique, best_ber = dala_graph(8, dala_best_gamma*gamma_relaxation, distributions)
-    #     if best_ber < min_ber["ber"]:
-    #         min_ber["ber"] = best_ber
-    #         min_ber["clique"] = best_clique
-    #         min_ber["relaxation"] = gamma_relaxation
-            
-    print("graph based flexible dala")
+    print("graph based dala")
     min_ber = {"ber": 1, "clique": None, "relaxation": None}
-    best_clique, best_ber = fdala_graph(num_levels, dala_best_gamma, distributions)
+    best_clique, best_ber = dala_graph(num_levels, dala_best_gamma, distributions)
+    for relaxation in range(11, 31, 1):
+        gamma_relaxation = relaxation / 10
+        print("relaxation: ", gamma_relaxation)
+        best_clique, best_ber = dala_graph(8, dala_best_gamma*gamma_relaxation, distributions)
+        if best_ber < min_ber["ber"]:
+            min_ber["ber"] = best_ber
+            min_ber["clique"] = best_clique
+            min_ber["relaxation"] = gamma_relaxation
+            
+    # print("graph based flexible dala")
+    # min_ber = {"ber": 1, "clique": None, "relaxation": None}
+    # best_clique, best_ber = fdala_graph(num_levels, dala_best_gamma, distributions)
     # for relaxation in range(11, 12, 1):
     #     gamma_relaxation = relaxation / 10
     #     print("relaxation: ", gamma_relaxation)
