@@ -359,26 +359,24 @@ if __name__ == "__main__":
     
     fdala_relaxation = run_graph_relaxation_test_fdala(distributions, 8, basic["flexible_dala"][2])
     results8.update(fdala_relaxation)
-    
-    
-    
+
     print(results8)
     
     with open("./all_tests/"+model_filename+"_8levels.json", "w") as f:
         json.dump(results8, f)
         
-    # results16 = {}
+    results16 = {}
     
-    # basic = run_basic_test(distributions, 16, eps)
-    # results16.update(basic)
+    basic = run_basic_test(distributions, 16, eps)
+    results16.update(basic)
     
-    # graph = run_graph_test(distributions, 16, basic["dala"][2], basic["flexible_dala"][2])
-    # results16.update(graph)
+    graph = run_graph_test(distributions, 16, basic["dala"][2], basic["flexible_dala"][2])
+    results16.update(graph)
     
-    # relaxation = run_graph_relaxation_test(distributions, 16, basic["dala"][2], False)
-    # results16.update(relaxation)
+    dala_relaxation = run_graph_relaxation_test_dala(distributions, 16, basic["dala"][2])
+    results16.update(dala_relaxation)
     
-    # with open("./all_tests/"+model_filename+"_16levels.json", "w") as f:
-    #     json.dump(results16, f)
+    with open("./all_tests/"+model_filename+"_16levels.json", "w") as f:
+        json.dump(results16, f)
     
     
