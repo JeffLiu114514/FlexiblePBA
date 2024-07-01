@@ -10,6 +10,7 @@ import copy
 import json
 from tqdm import tqdm
 import argparse
+import multiprocessing
 
 DEBUG=False
 ecc_params = {"codes": allcode(),
@@ -276,35 +277,58 @@ def run_graph_test(distributions, num_levels, dala_gamma, fdala_gamma):
     
     return results
 
-def run_graph_relaxation_test(distributions, num_levels, dala_gamma, fdala_flag=False, fdala_gamma=None):
-    print("Graph relaxation tests for", num_levels, "levels")
+def dala_relaxation_parallel(num_levels, relaxed_gamma, distributions):
+    best_clique, best_ber = dala_graph(num_levels, relaxed_gamma, distributions)
+    ecc = get_ecc_for_ber(best_ber)
+    return (best_ber, ecc)
+
+def fdala_relaxation_parallel(num_levels, relaxed_gamma, distributions):
+    best_clique, best_ber = fdala_graph(num_levels, relaxed_gamma, distributions)
+    ecc = get_ecc_for_ber(best_ber)
+    return (best_ber, ecc)
+
+def run_graph_relaxation_test_fdala(distributions, num_levels, fdala_gamma):
+    print("Dala graph relaxation tests for", num_levels, "levels")
     results = {}
-    min_ber = {"ber": 1, "ecc": 100, "clique": None, "relaxation": None}
     
+    pool = multiprocessing.Pool()
     for relaxation in range(11, 31, 1):
         gamma_relaxation = relaxation / 10
-        best_clique, best_ber = dala_graph(num_levels, dala_gamma*gamma_relaxation, distributions)
-        ecc = get_ecc_for_ber(best_ber)
-        results[f"dala_graph_relaxation_{gamma_relaxation}"] = (best_ber, ecc)
-        if best_ber < min_ber["ber"]:
-            min_ber["ber"] = best_ber
-            min_ber["ecc"] = ecc
-            min_ber["clique"] = best_clique
-            min_ber["relaxation"] = gamma_relaxation
-    results["dala_graph_relaxation_best"] = (min_ber["ber"], min_ber["ecc"], min_ber["relaxation"])
-      
-    if fdala_flag:
-        for relaxation in range(11, 31, 1):
-            gamma_relaxation = relaxation / 10
-            best_clique, best_ber = fdala_graph(num_levels, fdala_gamma*gamma_relaxation, distributions)
-            ecc = get_ecc_for_ber(best_ber)
-            results[f"fdala_graph_relaxation_{gamma_relaxation}"] = (best_ber, ecc)
-            if best_ber < min_ber["ber"]:
-                min_ber["ber"] = best_ber
-                min_ber["ecc"] = ecc
-                min_ber["clique"] = best_clique
-                min_ber["relaxation"] = gamma_relaxation
-        results["fdala_graph_relaxation_best"] = (min_ber["ber"], min_ber["ecc"], min_ber["relaxation"])
+        result = pool.apply_async(fdala_relaxation_parallel, (num_levels, fdala_gamma*gamma_relaxation, distributions))
+        results[gamma_relaxation] = result.get()
+    
+    pool.close()
+    pool.join()
+    
+    min_ber_key = min(results, key=lambda k: results[k][0])
+    print("Best relaxation: ", min_ber_key)
+    results["flexible_dala_graph_relaxation_best"] = (results[min_ber_key][0], results[min_ber_key][0], min_ber_key)
+    for key in results:
+        new_key = "flexible_dala_graph_relaxation_" + str(key)
+        results[new_key] = results.pop(key)
+    
+    return results
+
+def run_graph_relaxation_test_dala(distributions, num_levels, dala_gamma):
+    print("Dala graph relaxation tests for", num_levels, "levels")
+    results = {}
+    # min_ber = {"ber": 1, "ecc": 100, "clique": None, "relaxation": None}
+    
+    pool = multiprocessing.Pool()
+    for relaxation in range(11, 31, 1):
+        gamma_relaxation = relaxation / 10
+        result = pool.apply_async(dala_relaxation_parallel, (num_levels, dala_gamma*gamma_relaxation, distributions))
+        results[gamma_relaxation] = result.get()
+    
+    pool.close()
+    pool.join()
+    
+    min_ber_key = min(results, key=lambda k: results[k][0])
+    print("Best relaxation: ", min_ber_key)
+    results["dala_graph_relaxation_best"] = (results[min_ber_key][0], results[min_ber_key][0], min_ber_key)
+    for key in results:
+        new_key = "dala_graph_relaxation_" + str(key)
+        results[new_key] = results.pop(key)
     
     return results
 
@@ -330,24 +354,31 @@ if __name__ == "__main__":
     graph = run_graph_test(distributions, 8, basic["dala"][2], basic["flexible_dala"][2])
     results8.update(graph)
     
-    # relaxation = run_graph_relaxation_test(distributions, 8, basic["dala"][2], True, basic["flexible_dala"][2])
-    # results8.update(relaxation)
+    dala_relaxation = run_graph_relaxation_test_dala(distributions, 8, basic["dala"][2])#, True, basic["flexible_dala"][2]
+    results8.update(dala_relaxation)
+    
+    fdala_relaxation = run_graph_relaxation_test_fdala(distributions, 8, basic["flexible_dala"][2])
+    results8.update(fdala_relaxation)
+    
+    
+    
+    print(results8)
     
     with open("./all_tests/"+model_filename+"_8levels.json", "w") as f:
         json.dump(results8, f)
         
-    results16 = {}
+    # results16 = {}
     
-    basic = run_basic_test(distributions, 16, eps)
-    results16.update(basic)
+    # basic = run_basic_test(distributions, 16, eps)
+    # results16.update(basic)
     
-    graph = run_graph_test(distributions, 16, basic["dala"][2], basic["flexible_dala"][2])
-    results16.update(graph)
+    # graph = run_graph_test(distributions, 16, basic["dala"][2], basic["flexible_dala"][2])
+    # results16.update(graph)
     
-    relaxation = run_graph_relaxation_test(distributions, 16, basic["dala"][2], False)
-    results16.update(relaxation)
+    # relaxation = run_graph_relaxation_test(distributions, 16, basic["dala"][2], False)
+    # results16.update(relaxation)
     
-    with open("./all_tests/"+model_filename+"_16levels.json", "w") as f:
-        json.dump(results16, f)
+    # with open("./all_tests/"+model_filename+"_16levels.json", "w") as f:
+    #     json.dump(results16, f)
     
     
