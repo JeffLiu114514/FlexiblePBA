@@ -125,7 +125,7 @@ def fdala_level_inference(BER, distributions):
         else:
             # print("num_discard: ", num_discard)
             for i in range(0, num_discard):
-                Rlow, Rhigh = RelaxDistr[i], RelaxDistr[-(num_discard-i)]+1
+                Rlow, Rhigh = RelaxDistr[i], RelaxDistr[-(num_discard+1-i)]+1
                 levels.append([Rlow, Rhigh, tmin, tmax])
     # print(levels)
     return np.unique(np.array(levels), axis=0).tolist()
@@ -170,9 +170,9 @@ def dala_graph(specified_levels, cur_gamma, distributions, flexible_refine_flag=
     print("Number of nodes in the graph:", num_nodes)
     # cliques = list(nx.enumerate_all_cliques(graph))
     cliques = list(nx.find_cliques(graph))
-    # print("num cliques: ", len(cliques))
+    print("num cliques: ", len(cliques))
     cliques_ = [clique for clique in cliques if len(clique) == specified_levels]
-    # print("num cliques with", specified_levels, "levels:", len(cliques_))
+    print("num cliques with", specified_levels, "levels:", len(cliques_))
     
     best_ber = 1
     best_clique = None
@@ -194,8 +194,8 @@ def dala_graph(specified_levels, cur_gamma, distributions, flexible_refine_flag=
             best_ber = ber
             best_clique = refined
     
-    # print(best_clique)
-    # print(best_ber)
+    print(best_clique)
+    print(best_ber)
     return best_clique, best_ber
 
 def fdala_graph(specified_levels, cur_gamma, distributions, flexible_refine_flag=False):
@@ -203,12 +203,12 @@ def fdala_graph(specified_levels, cur_gamma, distributions, flexible_refine_flag
     levels = fdala_level_inference(cur_gamma, distributions)
     graph = construct_graph(levels)
     num_nodes = graph.number_of_nodes()
-    # print("Number of nodes in the graph:", num_nodes)
+    print("Number of nodes in the graph:", num_nodes)
     # cliques = list(nx.enumerate_all_cliques(graph))
     cliques = list(nx.find_cliques(graph))
-    # print("num cliques: ", len(cliques))
+    print("num cliques: ", len(cliques))
     cliques_ = [clique for clique in cliques if len(clique) == specified_levels]
-    # print("num cliques with", specified_levels, "levels:", len(cliques_))
+    print("num cliques with", specified_levels, "levels:", len(cliques_))
     
     best_ber = 1
     best_clique = None
@@ -231,8 +231,8 @@ def fdala_graph(specified_levels, cur_gamma, distributions, flexible_refine_flag
             best_ber = ber
             best_clique = refined
     
-    # print(best_clique)
-    # print(best_ber)
+    print(best_clique)
+    print(best_ber)
     return best_clique, best_ber
 
 
@@ -258,6 +258,11 @@ def run_basic_test(distributions, num_levels, eps):
     flexible_refined, gamma, _ = flexible_dala_minimal_BER(n, eps, distributions, flexible_refine_flag=True)
     ber = get_ber_for_allocs(flexible_refined[0], distributions, n)
     results["flexible_dala+flexible_refine"] = (ber, ecc, gamma)
+    
+    print("dala:", results["dala"])
+    print("dala+flexible_refine:", results["dala+flexible_refine"])
+    print("flexible_dala:", results["flexible_dala"])
+    print("flexible_dala+flexible_refine:", results["flexible_dala+flexible_refine"])
 
     return results
 
@@ -270,10 +275,18 @@ def run_graph_test(distributions, num_levels, dala_gamma, fdala_gamma):
     ecc = get_ecc_for_ber(dala_ber)
     results["dala_graph"] = (dala_ber, ecc)
     
+    dala_clique, dala_ber = dala_graph(n, dala_gamma, distributions, flexible_refine_flag=True)
+    ecc = get_ecc_for_ber(dala_ber)
+    results["dala_graph+flexible_refine"] = (dala_ber, ecc)
+    
     if n <= 8:
         fdala_clique, fdala_ber = fdala_graph(n, fdala_gamma, distributions)
         ecc = get_ecc_for_ber(fdala_ber)
         results["fdala_graph"] = (fdala_ber, ecc)
+        
+        fdala_clique, fdala_ber = fdala_graph(n, fdala_gamma, distributions, flexible_refine_flag=True)
+        ecc = get_ecc_for_ber(fdala_ber)
+        results["fdala_graph+flexible_refine"] = (fdala_ber, ecc)
     
     return results
 
@@ -288,7 +301,7 @@ def fdala_relaxation_parallel(num_levels, relaxed_gamma, distributions):
     return (best_ber, ecc)
 
 def run_graph_relaxation_test_fdala(distributions, num_levels, fdala_gamma):
-    print("Dala graph relaxation tests for", num_levels, "levels")
+    print("Flexible dala graph relaxation tests for", num_levels, "levels")
     results = {}
     
     pool = multiprocessing.Pool()
@@ -326,7 +339,7 @@ def run_graph_relaxation_test_dala(distributions, num_levels, dala_gamma):
     min_ber_key = min(results, key=lambda k: results[k][0])
     print("Best relaxation: ", min_ber_key)
     results["dala_graph_relaxation_best"] = (results[min_ber_key][0], results[min_ber_key][0], min_ber_key)
-    for key in results:
+    for key in list(results.keys()):
         new_key = "dala_graph_relaxation_" + str(key)
         results[new_key] = results.pop(key)
     
@@ -354,15 +367,15 @@ if __name__ == "__main__":
     graph = run_graph_test(distributions, 8, basic["dala"][2], basic["flexible_dala"][2])
     results8.update(graph)
     
-    dala_relaxation = run_graph_relaxation_test_dala(distributions, 8, basic["dala"][2])#, True, basic["flexible_dala"][2]
-    results8.update(dala_relaxation)
+    # dala_relaxation = run_graph_relaxation_test_dala(distributions, 8, basic["dala"][2])#, True, basic["flexible_dala"][2]
+    # results8.update(dala_relaxation)
     
-    fdala_relaxation = run_graph_relaxation_test_fdala(distributions, 8, basic["flexible_dala"][2])
-    results8.update(fdala_relaxation)
+    # fdala_relaxation = run_graph_relaxation_test_fdala(distributions, 8, basic["flexible_dala"][2])
+    # results8.update(fdala_relaxation)
 
     print(results8)
     
-    with open("./all_tests/"+model_filename+"_8levels.json", "w") as f:
+    with open("./all_tests/"+model_filename+"_8levels_basics.json", "w") as f:
         json.dump(results8, f)
         
     results16 = {}
@@ -373,10 +386,10 @@ if __name__ == "__main__":
     graph = run_graph_test(distributions, 16, basic["dala"][2], basic["flexible_dala"][2])
     results16.update(graph)
     
-    dala_relaxation = run_graph_relaxation_test_dala(distributions, 16, basic["dala"][2])
-    results16.update(dala_relaxation)
+    # dala_relaxation = run_graph_relaxation_test_dala(distributions, 16, basic["dala"][2])
+    # results16.update(dala_relaxation)
     
-    with open("./all_tests/"+model_filename+"_16levels.json", "w") as f:
+    with open("./all_tests/"+model_filename+"_16levels_basics.json", "w") as f:
         json.dump(results16, f)
     
     

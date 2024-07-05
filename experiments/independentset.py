@@ -100,8 +100,8 @@ def dala_graph(specified_levels, cur_gamma, distributions):
     graph = construct_graph(levels)
     num_nodes = graph.number_of_nodes()
     print("Number of nodes in the graph:", num_nodes)
-    # cliques = list(nx.enumerate_all_cliques(graph))
-    cliques = list(nx.find_cliques(graph))
+    cliques = list(nx.enumerate_all_cliques(graph))
+    # cliques = list(nx.find_cliques(graph))
     print("num cliques: ", len(cliques))
     cliques_ = [clique for clique in cliques if len(clique) == specified_levels]
     print("num cliques with", specified_levels, "levels:", len(cliques_))
@@ -185,7 +185,7 @@ if __name__ == "__main__":
     distributions = init_model()
     # gamma_relaxation = 1.5
     
-    num_levels = 16
+    num_levels = 8
     
     refined, dala_best_gamma = minimal_BER(num_levels, 1e-3, distributions)
     ber = get_ber_for_allocs(refined, distributions, num_levels)
