@@ -1,1 +1,38 @@
-{"dala": [0.005086635348583878, 1.101514051640439, 0.0314453125], "dala+flexible_refine": [0.0, 0.0, 0.0], "flexible_dala": [0.005191312636165578, 1.101514051640439, 0.01630859375], "flexible_dala+flexible_refine": [0.0, 0.0, 0.0], "dala_graph": [0.004034756263616557, 1.0917710279740596], "dala_graph+flexible_refine": [0.0, 0.0], "fdala_graph": [0.0, 0.0], "fdala_graph+flexible_refine": [0.0, 0.0]}
+{
+  "dala": [
+    0.005086635348583878,
+    1.101514051640439,
+    0.0314453125
+  ],
+  "dala+flexible_refine": [
+    0,
+    0,
+    0
+  ],
+  "flexible_dala": [
+    0.005191312636165578,
+    1.101514051640439,
+    0.01630859375
+  ],
+  "flexible_dala+flexible_refine": [
+    0,
+    0,
+    0
+  ],
+  "dala_graph": [
+    0.004034756263616557,
+    1.0917710279740596
+  ],
+  "dala_graph+flexible_refine": [
+    0,
+    0
+  ],
+  "fdala_graph": [
+    0,
+    0
+  ],
+  "fdala_graph+flexible_refine": [
+    0,
+    0
+  ]
+}
