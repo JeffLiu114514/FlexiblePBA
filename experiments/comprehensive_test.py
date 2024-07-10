@@ -10,6 +10,7 @@ import copy
 import json
 from tqdm import tqdm
 import argparse
+import random
 import multiprocessing
 
 DEBUG=False
@@ -266,18 +267,47 @@ def run_basic_test(distributions, num_levels, eps):
 
     return results
 
+def run_basic_test_samples(orig_distributions, sample_distributions, num_levels, eps):
+    print("Basic tests for", num_levels, "levels")
+    n = num_levels
+    results = {}
+
+    dala_refined, gamma = dala_minimal_BER(n, eps, sample_distributions)
+    ber = get_ber_for_allocs(dala_refined, orig_distributions, n)
+    ecc = get_ecc_for_ber(ber)
+    results["dala"] = (ber, ecc, gamma)
+    
+    # dala_refined, gamma = dala_minimal_BER(n, eps, sample_distributions, flexible_refine_flag=True)
+    # ber = get_ber_for_allocs(dala_refined, orig_distributions, n)
+    # results["dala+flexible_refine"] = (ber, ecc, gamma)
+    
+    flexible_refined, gamma, _ = flexible_dala_minimal_BER(n, eps, sample_distributions)
+    ber = get_ber_for_allocs(flexible_refined, orig_distributions, n)
+    results["flexible_dala"] = (ber, ecc, gamma)
+    
+    # flexible_refined, gamma, _ = flexible_dala_minimal_BER(n, eps, sample_distributions, flexible_refine_flag=True)
+    # ber = get_ber_for_allocs(flexible_refined[0], orig_distributions, n)
+    # results["flexible_dala+flexible_refine"] = (ber, ecc, gamma)
+    
+    print("dala:", results["dala"])
+    # print("dala+flexible_refine:", results["dala+flexible_refine"])
+    print("flexible_dala:", results["flexible_dala"])
+    # print("flexible_dala+flexible_refine:", results["flexible_dala+flexible_refine"])
+
+    return results
+
 def run_graph_test(distributions, num_levels, dala_gamma, fdala_gamma):
     print("Graph tests for", num_levels, "levels")
     n = num_levels
     results = {}
     
-    dala_clique, dala_ber = dala_graph(n, dala_gamma, distributions)
-    ecc = get_ecc_for_ber(dala_ber)
-    results["dala_graph"] = (dala_ber, ecc)
+    # dala_clique, dala_ber = dala_graph(n, dala_gamma, distributions)
+    # ecc = get_ecc_for_ber(dala_ber)
+    # results["dala_graph"] = (dala_ber, ecc)
     
-    dala_clique, dala_ber = dala_graph(n, dala_gamma, distributions, flexible_refine_flag=True)
-    ecc = get_ecc_for_ber(dala_ber)
-    results["dala_graph+flexible_refine"] = (dala_ber, ecc)
+    # dala_clique, dala_ber = dala_graph(n, dala_gamma, distributions, flexible_refine_flag=True)
+    # ecc = get_ecc_for_ber(dala_ber)
+    # results["dala_graph+flexible_refine"] = (dala_ber, ecc)
     
     if n <= 8:
         fdala_clique, fdala_ber = fdala_graph(n, fdala_gamma, distributions)
@@ -287,6 +317,34 @@ def run_graph_test(distributions, num_levels, dala_gamma, fdala_gamma):
         fdala_clique, fdala_ber = fdala_graph(n, fdala_gamma, distributions, flexible_refine_flag=True)
         ecc = get_ecc_for_ber(fdala_ber)
         results["fdala_graph+flexible_refine"] = (fdala_ber, ecc)
+    
+    return results
+
+def run_graph_test_samples(orig_distributions, sample_distributions, num_levels, dala_gamma, fdala_gamma):
+    print("Graph tests for", num_levels, "levels")
+    n = num_levels
+    results = {}
+    
+    dala_clique, dala_ber = dala_graph(n, dala_gamma, sample_distributions)
+    actual_ber = get_ber_for_allocs(dala_clique, orig_distributions, n)
+    ecc = get_ecc_for_ber(actual_ber)
+    results["dala_graph"] = (actual_ber, ecc)
+    
+    # dala_clique, dala_ber = dala_graph(n, dala_gamma, sample_distributions, flexible_refine_flag=True)
+    # actual_ber = get_ber_for_allocs(dala_clique, orig_distributions, n)
+    # ecc = get_ecc_for_ber(actual_ber)
+    # results["dala_graph+flexible_refine"] = (actual_ber, ecc)
+    
+    # if n <= 8:
+    #     fdala_clique, fdala_ber = fdala_graph(n, fdala_gamma, sample_distributions) # fdala_gamma changed to dala_gamma
+    #     actual_ber = get_ber_for_allocs(fdala_clique, orig_distributions, n)
+    #     ecc = get_ecc_for_ber(actual_ber)
+    #     results["fdala_graph"] = (actual_ber, ecc)
+        # 
+        # fdala_clique, fdala_ber = fdala_graph(n, fdala_gamma, sample_distributions, flexible_refine_flag=True)
+        # actual_ber = get_ber_for_allocs(fdala_clique, orig_distributions, n)
+        # ecc = get_ecc_for_ber(actual_ber)
+        # results["fdala_graph+flexible_refine"] = (actual_ber, ecc)
     
     return results
 
@@ -345,6 +403,79 @@ def run_graph_relaxation_test_dala(distributions, num_levels, dala_gamma):
     
     return results
 
+def sample_distributions(distributions, percentage, sample_method="random"):
+    sampled_distributions = {}
+    for key, value in distributions.items():
+        sample_size = int(len(value) * (percentage / 100))
+        if sample_method == "uniform":
+            sampled_distributions[key] = value[::len(value)//sample_size]
+        elif sample_method == "random":
+            sampled_distributions[key] = sorted(random.sample(value, sample_size))
+    return sampled_distributions
+
+def run_sampled_tests(init_distr, percentage, num_sample=10):
+    sum_8levels = json.load(open("all_tests/8levels_basics_init.json"))
+    sum_16levels = json.load(open("all_tests/16levels_basics_init.json"))
+    
+    for i in range(num_sample):
+        sampled_results8 = {}
+        sampled_results16 = {}
+        
+        counter = 0
+        while True:
+            try:
+                distributions = sample_distributions(init_distr, percentage)
+                basic = run_basic_test_samples(init_distr, distributions, 8, eps)
+                sampled_results8.update(basic)
+                
+                graph = run_graph_test_samples(init_distr, distributions, 8, basic["dala"][2], basic["flexible_dala"][2])
+                sampled_results8.update(graph)
+                
+                basic = run_basic_test_samples(init_distr, distributions, 16, eps)
+                sampled_results16.update(basic)
+                
+                graph = run_graph_test_samples(init_distr, distributions, 16, basic["dala"][2], basic["flexible_dala"][2])
+                sampled_results16.update(graph)
+            except UnboundLocalError as e:
+                print(e)
+                counter += 1
+                print("resampling for the", counter, "times.")
+                if counter < 10: 
+                    continue
+                else:
+                    print("more than 10 times failed attempts for sampling at", percentage, "percent. Exiting")
+                    exit(0)
+            break
+            
+        
+        print(sampled_results8)
+        print(sampled_results16)
+        
+        for key in sampled_results8.keys():
+            for j in range(len(sampled_results8[key])):
+                sum_8levels[key][j] += sampled_results8[key][j]
+        
+        for key in sampled_results16.keys():
+            for j in range(len(sampled_results16[key])):
+                sum_16levels[key][j] += sampled_results16[key][j]
+    
+    def divide_values(input_dict, divisor):
+        result = {}
+        for key, values in input_dict.items():
+            result[key] = [value / divisor for value in values]
+        return result
+    
+    result_8levels = divide_values(sum_8levels, num_sample)
+    result_16levels = divide_values(sum_16levels, num_sample)
+    
+    with open("./all_tests/"+model_filename+"_8levels_samples_"+str(percentage)+".json", "w") as f:
+        json.dump(result_8levels, f)
+    
+    with open("./all_tests/"+model_filename+"_16levels_samples_"+str(percentage)+".json", "w") as f:
+        json.dump(result_16levels, f)
+        
+    # return result_8levels, result_16levels
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-f", "--model_filename", type=str, help="filename for the test model file", default="retention1s.csv")
@@ -358,38 +489,55 @@ if __name__ == "__main__":
     
     distributions = init_model(model_filename)
     
+    #---------------- sample test ----------------------
+    # run_sampled_tests(distributions, 25)
+    # Pros = []
+    # for perc in [25, 50, 75, 90]:
+    #     p = multiprocessing.Process(target=run_sampled_tests, args=(distributions, perc))
+    #     Pros.append(p)
+    #     p.start()
     
-    results8 = {}
+    # for t in Pros:
+    #     t.join()
     
-    basic = run_basic_test(distributions, 8, eps)
-    results8.update(basic)
+    # run_sampled_tests(distributions, 25)
+    # run_sampled_tests(distributions, 50)
+    run_sampled_tests(distributions, 75)
+    run_sampled_tests(distributions, 90)
     
-    graph = run_graph_test(distributions, 8, basic["dala"][2], basic["flexible_dala"][2])
-    results8.update(graph)
     
-    # dala_relaxation = run_graph_relaxation_test_dala(distributions, 8, basic["dala"][2])#, True, basic["flexible_dala"][2]
-    # results8.update(dala_relaxation)
+    #----------------- regular test --------------------
+    # results8 = {}
     
-    # fdala_relaxation = run_graph_relaxation_test_fdala(distributions, 8, basic["flexible_dala"][2])
-    # results8.update(fdala_relaxation)
+    # basic = run_basic_test(distributions, 8, eps)
+    # results8.update(basic)
+    
+    # graph = run_graph_test(distributions, 8, basic["dala"][2], basic["flexible_dala"][2])
+    # results8.update(graph)
+    
+    # # dala_relaxation = run_graph_relaxation_test_dala(distributions, 8, basic["dala"][2])#, True, basic["flexible_dala"][2]
+    # # results8.update(dala_relaxation)
+    
+    # # fdala_relaxation = run_graph_relaxation_test_fdala(distributions, 8, basic["flexible_dala"][2])
+    # # results8.update(fdala_relaxation)
 
-    print(results8)
+    # print(results8)
     
-    with open("./all_tests/"+model_filename+"_8levels_basics.json", "w") as f:
-        json.dump(results8, f)
+    # with open("./all_tests/"+model_filename+"_8levels_basics.json", "w") as f:
+    #     json.dump(results8, f)
         
-    results16 = {}
+    # results16 = {}
     
-    basic = run_basic_test(distributions, 16, eps)
-    results16.update(basic)
+    # basic = run_basic_test(distributions, 16, eps)
+    # results16.update(basic)
     
-    graph = run_graph_test(distributions, 16, basic["dala"][2], basic["flexible_dala"][2])
-    results16.update(graph)
+    # graph = run_graph_test(distributions, 16, basic["dala"][2], basic["flexible_dala"][2])
+    # results16.update(graph)
     
-    # dala_relaxation = run_graph_relaxation_test_dala(distributions, 16, basic["dala"][2])
-    # results16.update(dala_relaxation)
+    # # dala_relaxation = run_graph_relaxation_test_dala(distributions, 16, basic["dala"][2])
+    # # results16.update(dala_relaxation)
     
-    with open("./all_tests/"+model_filename+"_16levels_basics.json", "w") as f:
-        json.dump(results16, f)
+    # with open("./all_tests/"+model_filename+"_16levels_basics.json", "w") as f:
+    #     json.dump(results16, f)
     
     

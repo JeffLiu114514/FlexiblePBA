@@ -31,7 +31,7 @@ def update(R, anchor, xl, xh, BER):
     num_discard = int((BER - left_perc) * len(R))
     if num_discard == 0:
         return anchor, R[-1] + 1
-    return anchor, R[-num_discard] + 1
+    return anchor, R[-num_discard-1] + 1
 
 
 def linear_search_BER(specified_levels, eps, distributions, low_BER = 0, high_BER = 1):
@@ -228,10 +228,16 @@ def candidate_gen(BER, distributions):
 
 def getReadRange(vals, BER):
     # The read range [Rmin, Rmax) -- any point within [Rmin, Rmax) are within this level
-    num_discard = int(BER * len(vals))
-    if num_discard == 0:
-        return vals[0], vals[-1] + 1
-    return vals[0], vals[-num_discard] + 1
+    # num_discard = int(BER * len(vals) / 2)
+    # if num_discard == 0:
+    #     return vals[num_discard], vals[-1] + 1
+    # return vals[num_discard], vals[-num_discard] + 1
+    total_num_discard = int(BER * len(vals))
+    if total_num_discard % 2 == 0:
+        num_discard_front, num_discard_back = int(total_num_discard / 2), int(total_num_discard / 2)
+    else:
+        num_discard_front, num_discard_back = int(total_num_discard / 2) + 1, int(total_num_discard / 2)
+    return vals[num_discard_front], vals[-num_discard_back-1] + 1
 
 
 def refine(level_alloc):
@@ -375,24 +381,24 @@ if __name__ == "__main__":
     
     
     
-    refined, best_BER, ratios_lists_min = minimal_BER(specified_levels, 1e-10, distributions, flexible_refine_flag=False)
-    refined, best_BER, ratios_lists_max = maximal_BER(specified_levels, 1e-10, distributions, flexible_refine_flag=False)
-    gamma_list = [i["gamma"] for i in ratios_lists_min+ratios_lists_max]
-    print(f"min and max gamma for {specified_levels}-level allocation: ", min(gamma_list), max(gamma_list))
+    # refined, best_BER, ratios_lists_min = minimal_BER(specified_levels, 1e-10, distributions, flexible_refine_flag=False)
+    # refined, best_BER, ratios_lists_max = maximal_BER(specified_levels, 1e-10, distributions, flexible_refine_flag=False)
+    # gamma_list = [i["gamma"] for i in ratios_lists_min+ratios_lists_max]
+    # print(f"min and max gamma for {specified_levels}-level allocation: ", min(gamma_list), max(gamma_list))
     
-    gamma_list = [i/10000 for i in range(int(min(gamma_list)*10000)+1, int(max(gamma_list)*10000)+1)]
-    min_ber_list = []
-    for gamma in gamma_list:
-        refined, min_ber = get_alloc_ber_by_gamma(gamma, specified_levels, distributions)
-        min_ber_list.append(min_ber)
+    # gamma_list = [i/10000 for i in range(int(min(gamma_list)*10000)+1, int(max(gamma_list)*10000)+1)]
+    # min_ber_list = []
+    # for gamma in gamma_list:
+    #     refined, min_ber = get_alloc_ber_by_gamma(gamma, specified_levels, distributions)
+    #     min_ber_list.append(min_ber)
     
-    import matplotlib.pyplot as plt
+    # import matplotlib.pyplot as plt
 
-    plt.plot(gamma_list, min_ber_list)
-    plt.xlabel('Gamma')
-    plt.ylabel('Min BER')
-    plt.title('Min BER vs Gamma')
-    plt.show()
+    # plt.plot(gamma_list, min_ber_list)
+    # plt.xlabel('Gamma')
+    # plt.ylabel('Min BER')
+    # plt.title('Min BER vs Gamma')
+    # plt.show()
     # dist_4, dist_8, dist_16 = init_dist()
     
     # gammas = []

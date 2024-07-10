@@ -62,6 +62,12 @@ def getReadRange(vals, BER):
     if num_discard == 0:
         return vals[num_discard], vals[-1] + 1
     return vals[num_discard], vals[-num_discard] + 1
+    # total_num_discard = int(BER * len(vals))
+    # if total_num_discard % 2 == 0:
+    #     num_discard_front, num_discard_back = int(total_num_discard / 2), int(total_num_discard / 2)
+    # else:
+    #     num_discard_front, num_discard_back = int(total_num_discard / 2) + 1, int(total_num_discard / 2)
+    # return vals[num_discard_front], vals[-num_discard_back-1] + 1
 
 def refine(level_alloc):
     '''
@@ -98,7 +104,7 @@ def flexible_refine(level_alloc, specified_levels, distributions):
         assert level_alloc[i - 1][1] <= level_alloc[i][0]
         min_ber = get_ber_for_allocs(level_alloc, distributions, specified_levels, dist_4, dist_8, dist_16)
         best_j = level_alloc[i - 1][1]
-        for j in range(vanilla[i - 1][0], vanilla[i][1]):
+        for j in range(vanilla[i - 1][0], vanilla[i][1]+1):
             level_alloc[i - 1][1] = j
             level_alloc[i][0] = j
             ber = get_ber_for_allocs(level_alloc, distributions, specified_levels, dist_4, dist_8, dist_16)

@@ -37,9 +37,14 @@ fpba-graph + relaxing gamma(up to 3 times):
 fpba + flexible refine + relaxing gamma(up to 3 times):
 
 Questions:
-1. clique v.s. maximal clique?
-2. 16 levels are too many for graph cliques
+1. maximal clique
+2. using fpba gamma for fpba-graph
 
+TODO:
+running sampled tests. 
+write pseudocode for flexible refine & graph-cliques function + move fpba to new writeup
+create tables 2 3 5
+look for related work and fill things in the write-up.
 
 
 TODO:

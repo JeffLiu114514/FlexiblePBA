@@ -1,0 +1,38 @@
+{
+  "dala": [
+    0.005950435729847494,
+    1.1094949229667916,
+    0.0212890625
+  ],
+  "dala+flexible_refine": [
+    0,
+    0,
+    0
+  ],
+  "flexible_dala": [
+    0.005950435729847494,
+    1.1094949229667916,
+    0.0111328125
+  ],
+  "flexible_dala+flexible_refine": [
+    0,
+    0,
+    0
+  ],
+  "dala_graph": [
+    0.005442367919389977,
+    1.1047989507582354
+  ],
+  "dala_graph+flexible_refine": [
+    0,
+    0
+  ],
+  "fdala_graph": [
+    0,
+    0
+  ],
+  "fdala_graph+flexible_refine": [
+    0,
+    0
+  ]
+}
