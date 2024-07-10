@@ -452,7 +452,7 @@ def run_sampled_tests(init_distr, percentage, num_sample=10):
                 dalagraph16.append(sampled_results16["dala_graph"])
                 # fdalagraph16.append(sampled_results16["fdala_graph"])
                 
-            except UnboundLocalError as e:
+            except (UnboundLocalError, TypeError) as e:
                 print(e)
                 counter += 1
                 print("resampling for the", counter, "times.")
