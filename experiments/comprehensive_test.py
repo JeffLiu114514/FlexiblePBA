@@ -450,7 +450,7 @@ def run_sampled_tests(init_distr, percentage, num_sample=10):
                 dala16.append(sampled_results16["dala"])
                 fdala16.append(sampled_results16["flexible_dala"])
                 dalagraph16.append(sampled_results16["dala_graph"])
-                fdalagraph16.append(sampled_results16["fdala_graph"])
+                # fdalagraph16.append(sampled_results16["fdala_graph"])
                 
             except UnboundLocalError as e:
                 print(e)
@@ -486,10 +486,10 @@ def run_sampled_tests(init_distr, percentage, num_sample=10):
     dala16_stats = result_stats(dala16)
     fdala16_stats = result_stats(fdala16)
     dalagraph16_stats = result_stats(dalagraph16)
-    fdalagraph16_stats = result_stats(fdalagraph16)
+    # fdalagraph16_stats = result_stats(fdalagraph16)
     
     result_8levels = {"dala": dala8_stats, "flexible_dala": fdala8_stats, "dala_graph": dalagraph8_stats, "fdala_graph": fdalagraph8_stats}
-    result_16levels = {"dala": dala16_stats, "flexible_dala": fdala16_stats, "dala_graph": dalagraph16_stats, "fdala_graph": fdalagraph16_stats}
+    result_16levels = {"dala": dala16_stats, "flexible_dala": fdala16_stats, "dala_graph": dalagraph16_stats} # , "fdala_graph": fdalagraph16_stats
     
     with open("./all_tests/"+model_filename+"_8levels_samples_"+str(percentage)+".json", "w") as f:
         json.dump(result_8levels, f)
@@ -524,9 +524,9 @@ if __name__ == "__main__":
     #     t.join()
     
     run_sampled_tests(distributions, 25)
-    # run_sampled_tests(distributions, 50)
-    # run_sampled_tests(distributions, 75)
-    # run_sampled_tests(distributions, 90)
+    run_sampled_tests(distributions, 50)
+    run_sampled_tests(distributions, 75)
+    run_sampled_tests(distributions, 90)
     
     
     #----------------- regular test --------------------
