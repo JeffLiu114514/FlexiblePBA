@@ -12,6 +12,8 @@ from tqdm import tqdm
 import argparse
 import random
 import multiprocessing
+from collections import defaultdict
+import math
 
 DEBUG=False
 ecc_params = {"codes": allcode(),
@@ -413,9 +415,21 @@ def sample_distributions(distributions, percentage, sample_method="random"):
             sampled_distributions[key] = sorted(random.sample(value, sample_size))
     return sampled_distributions
 
+def calculate_statistics(numbers):
+        if len(numbers) == 0:
+            return None, None
+
+        average = sum(numbers) / len(numbers)
+        variance = sum((x - average) ** 2 for x in numbers) / len(numbers)
+        standard_deviation = math.sqrt(variance)
+
+        return average, standard_deviation
+
 def run_sampled_tests(init_distr, percentage, num_sample=10):
-    sum_8levels = json.load(open("all_tests/8levels_basics_init.json"))
-    sum_16levels = json.load(open("all_tests/16levels_basics_init.json"))
+    # sum_8levels = json.load(open("all_tests/8levels_basics_init.json"))
+    # sum_16levels = json.load(open("all_tests/16levels_basics_init.json"))
+    
+    dala8, fdala8, dalagraph8, dala16, fdala16, fdalagraph16 = [], [], [], [], [], []
     
     for i in range(num_sample):
         sampled_results8 = {}
@@ -436,6 +450,10 @@ def run_sampled_tests(init_distr, percentage, num_sample=10):
                 
                 graph = run_graph_test_samples(init_distr, distributions, 16, basic["dala"][2], basic["flexible_dala"][2])
                 sampled_results16.update(graph)
+                
+                dala8.append(sampled_results8["dala"])
+                fdala8.append(sampled_results8["flexible_dala"])
+                
             except UnboundLocalError as e:
                 print(e)
                 counter += 1
@@ -450,14 +468,27 @@ def run_sampled_tests(init_distr, percentage, num_sample=10):
         
         print(sampled_results8)
         print(sampled_results16)
-        
-        for key in sampled_results8.keys():
-            for j in range(len(sampled_results8[key])):
-                sum_8levels[key][j] += sampled_results8[key][j]
-        
-        for key in sampled_results16.keys():
-            for j in range(len(sampled_results16[key])):
-                sum_16levels[key][j] += sampled_results16[key][j]
+    
+    
+    results8 = defaultdict(list)
+    results16 = defaultdict(list)
+    
+    
+    for key in results8_all[0].keys():
+        results8[key].append(sampled_results8[key]) 
+    
+    for key in sampled_results16.keys():
+        for j in range(len(sampled_results16[key])):
+            results16[key].append(sampled_results16[key][j])
+    
+    
+
+    results8_stats = {}
+    results16_stats = {}
+    for key in results8.keys():
+        avg, std = calculate_statistics(results8[key])
+        results8_stats[key] = (avg, std)
+            
     
     def divide_values(input_dict, divisor):
         result = {}
