@@ -14,6 +14,7 @@ import random
 import multiprocessing
 from collections import defaultdict
 import math
+import numpy as np
 
 DEBUG=False
 ecc_params = {"codes": allcode(),
@@ -326,6 +327,7 @@ def run_graph_test_samples(orig_distributions, sample_distributions, num_levels,
     print("Graph tests for", num_levels, "levels")
     n = num_levels
     results = {}
+    fdala_gamma *= 1.1
     
     dala_clique, dala_ber = dala_graph(n, dala_gamma, sample_distributions)
     actual_ber = get_ber_for_allocs(dala_clique, orig_distributions, n)
@@ -337,11 +339,11 @@ def run_graph_test_samples(orig_distributions, sample_distributions, num_levels,
     # ecc = get_ecc_for_ber(actual_ber)
     # results["dala_graph+flexible_refine"] = (actual_ber, ecc)
     
-    # if n <= 8:
-    #     fdala_clique, fdala_ber = fdala_graph(n, fdala_gamma, sample_distributions) # fdala_gamma changed to dala_gamma
-    #     actual_ber = get_ber_for_allocs(fdala_clique, orig_distributions, n)
-    #     ecc = get_ecc_for_ber(actual_ber)
-    #     results["fdala_graph"] = (actual_ber, ecc)
+    if n <= 8:
+        fdala_clique, fdala_ber = fdala_graph(n, fdala_gamma, sample_distributions) # fdala_gamma changed to dala_gamma
+        actual_ber = get_ber_for_allocs(fdala_clique, orig_distributions, n)
+        ecc = get_ecc_for_ber(actual_ber)
+        results["fdala_graph"] = (actual_ber, ecc)
         # 
         # fdala_clique, fdala_ber = fdala_graph(n, fdala_gamma, sample_distributions, flexible_refine_flag=True)
         # actual_ber = get_ber_for_allocs(fdala_clique, orig_distributions, n)
@@ -415,21 +417,11 @@ def sample_distributions(distributions, percentage, sample_method="random"):
             sampled_distributions[key] = sorted(random.sample(value, sample_size))
     return sampled_distributions
 
-def calculate_statistics(numbers):
-        if len(numbers) == 0:
-            return None, None
-
-        average = sum(numbers) / len(numbers)
-        variance = sum((x - average) ** 2 for x in numbers) / len(numbers)
-        standard_deviation = math.sqrt(variance)
-
-        return average, standard_deviation
-
 def run_sampled_tests(init_distr, percentage, num_sample=10):
     # sum_8levels = json.load(open("all_tests/8levels_basics_init.json"))
     # sum_16levels = json.load(open("all_tests/16levels_basics_init.json"))
     
-    dala8, fdala8, dalagraph8, dala16, fdala16, fdalagraph16 = [], [], [], [], [], []
+    dala8, fdala8, dalagraph8, fdalagraph8, dala16, fdala16, dalagraph16, fdalagraph16 = [], [], [], [], [], [], [], []
     
     for i in range(num_sample):
         sampled_results8 = {}
@@ -453,6 +445,12 @@ def run_sampled_tests(init_distr, percentage, num_sample=10):
                 
                 dala8.append(sampled_results8["dala"])
                 fdala8.append(sampled_results8["flexible_dala"])
+                dalagraph8.append(sampled_results8["dala_graph"])
+                fdalagraph8.append(sampled_results8["fdala_graph"])
+                dala16.append(sampled_results16["dala"])
+                fdala16.append(sampled_results16["flexible_dala"])
+                dalagraph16.append(sampled_results16["dala_graph"])
+                fdalagraph16.append(sampled_results16["fdala_graph"])
                 
             except UnboundLocalError as e:
                 print(e)
@@ -469,35 +467,29 @@ def run_sampled_tests(init_distr, percentage, num_sample=10):
         print(sampled_results8)
         print(sampled_results16)
     
+    def result_stats(lists):
+        array = np.transpose(np.array(lists))
+        ber_avg = np.mean(array[0])
+        ber_std = np.std(array[0])
+        ecc_avg = np.mean(array[1])
+        ecc_std = np.std(array[1])
+        if array.size == 3:
+            gamma_avg = np.mean(array[2])
+            gamma_std = np.std(array[2])
+            return [ber_avg, ber_std, ecc_avg, ecc_std, gamma_avg, gamma_std]
+        return [ber_avg, ber_std, ecc_avg, ecc_std]
     
-    results8 = defaultdict(list)
-    results16 = defaultdict(list)
+    dala8_stats = result_stats(dala8)
+    fdala8_stats = result_stats(fdala8)
+    dalagraph8_stats = result_stats(dalagraph8)
+    fdalagraph8_stats = result_stats(fdalagraph8)
+    dala16_stats = result_stats(dala16)
+    fdala16_stats = result_stats(fdala16)
+    dalagraph16_stats = result_stats(dalagraph16)
+    fdalagraph16_stats = result_stats(fdalagraph16)
     
-    
-    for key in results8_all[0].keys():
-        results8[key].append(sampled_results8[key]) 
-    
-    for key in sampled_results16.keys():
-        for j in range(len(sampled_results16[key])):
-            results16[key].append(sampled_results16[key][j])
-    
-    
-
-    results8_stats = {}
-    results16_stats = {}
-    for key in results8.keys():
-        avg, std = calculate_statistics(results8[key])
-        results8_stats[key] = (avg, std)
-            
-    
-    def divide_values(input_dict, divisor):
-        result = {}
-        for key, values in input_dict.items():
-            result[key] = [value / divisor for value in values]
-        return result
-    
-    result_8levels = divide_values(sum_8levels, num_sample)
-    result_16levels = divide_values(sum_16levels, num_sample)
+    result_8levels = {"dala": dala8_stats, "flexible_dala": fdala8_stats, "dala_graph": dalagraph8_stats, "fdala_graph": fdalagraph8_stats}
+    result_16levels = {"dala": dala16_stats, "flexible_dala": fdala16_stats, "dala_graph": dalagraph16_stats, "fdala_graph": fdalagraph16_stats}
     
     with open("./all_tests/"+model_filename+"_8levels_samples_"+str(percentage)+".json", "w") as f:
         json.dump(result_8levels, f)
@@ -531,10 +523,10 @@ if __name__ == "__main__":
     # for t in Pros:
     #     t.join()
     
-    # run_sampled_tests(distributions, 25)
+    run_sampled_tests(distributions, 25)
     # run_sampled_tests(distributions, 50)
-    run_sampled_tests(distributions, 75)
-    run_sampled_tests(distributions, 90)
+    # run_sampled_tests(distributions, 75)
+    # run_sampled_tests(distributions, 90)
     
     
     #----------------- regular test --------------------
