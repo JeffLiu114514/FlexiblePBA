@@ -270,6 +270,36 @@ def run_basic_test(distributions, num_levels, eps):
 
     return results
 
+def run_interchip_basic_test(alloc_distribution, real_distribution, num_levels, eps):
+    print("Basic tests for", num_levels, "levels")
+    n = num_levels
+    results = {}
+
+    dala_refined, gamma = dala_minimal_BER(n, eps, alloc_distribution)
+    ber = get_ber_for_allocs(dala_refined, real_distribution, n)
+    ecc = get_ecc_for_ber(ber)
+    results["dala"] = (ber, ecc, gamma)
+    
+    dala_refined, gamma = dala_minimal_BER(n, eps, alloc_distribution, flexible_refine_flag=True)
+    ber = get_ber_for_allocs(dala_refined, real_distribution, n)
+    results["dala+flexible_refine"] = (ber, ecc, gamma)
+    
+    flexible_refined, gamma, _ = flexible_dala_minimal_BER(n, eps, alloc_distribution)
+    ber = get_ber_for_allocs(flexible_refined, real_distribution, n)
+    results["flexible_dala"] = (ber, ecc, gamma)
+    
+    flexible_refined, gamma, _ = flexible_dala_minimal_BER(n, eps, alloc_distribution, flexible_refine_flag=True)
+    ber = get_ber_for_allocs(flexible_refined[0], real_distribution, n)
+    results["flexible_dala+flexible_refine"] = (ber, ecc, gamma)
+    
+    print("dala:", results["dala"])
+    print("dala+flexible_refine:", results["dala+flexible_refine"])
+    print("flexible_dala:", results["flexible_dala"])
+    print("flexible_dala+flexible_refine:", results["flexible_dala+flexible_refine"])
+
+    return results
+
+
 def run_basic_test_samples(orig_distributions, sample_distributions, num_levels, eps):
     print("Basic tests for", num_levels, "levels")
     n = num_levels
@@ -304,13 +334,13 @@ def run_graph_test(distributions, num_levels, dala_gamma, fdala_gamma):
     n = num_levels
     results = {}
     
-    # dala_clique, dala_ber = dala_graph(n, dala_gamma, distributions)
-    # ecc = get_ecc_for_ber(dala_ber)
-    # results["dala_graph"] = (dala_ber, ecc)
+    dala_clique, dala_ber = dala_graph(n, dala_gamma, distributions)
+    ecc = get_ecc_for_ber(dala_ber)
+    results["dala_graph"] = (dala_ber, ecc)
     
-    # dala_clique, dala_ber = dala_graph(n, dala_gamma, distributions, flexible_refine_flag=True)
-    # ecc = get_ecc_for_ber(dala_ber)
-    # results["dala_graph+flexible_refine"] = (dala_ber, ecc)
+    dala_clique, dala_ber = dala_graph(n, dala_gamma, distributions, flexible_refine_flag=True)
+    ecc = get_ecc_for_ber(dala_ber)
+    results["dala_graph+flexible_refine"] = (dala_ber, ecc)
     
     if n <= 8:
         fdala_clique, fdala_ber = fdala_graph(n, fdala_gamma, distributions)
@@ -320,6 +350,34 @@ def run_graph_test(distributions, num_levels, dala_gamma, fdala_gamma):
         fdala_clique, fdala_ber = fdala_graph(n, fdala_gamma, distributions, flexible_refine_flag=True)
         ecc = get_ecc_for_ber(fdala_ber)
         results["fdala_graph+flexible_refine"] = (fdala_ber, ecc)
+    
+    return results
+
+def run_interchip_graph_test(alloc_distribution, real_distribution, num_levels, dala_gamma, fdala_gamma):
+    print("Graph tests for", num_levels, "levels")
+    n = num_levels
+    results = {}
+    
+    dala_clique, dala_ber = dala_graph(n, dala_gamma, alloc_distribution)
+    actual_ber = get_ber_for_allocs(dala_clique, real_distribution, n)
+    ecc = get_ecc_for_ber(actual_ber)
+    results["dala_graph"] = (actual_ber, ecc)
+    
+    dala_clique, dala_ber = dala_graph(n, dala_gamma, alloc_distribution, flexible_refine_flag=True)
+    actual_ber = get_ber_for_allocs(dala_clique, real_distribution, n)
+    ecc = get_ecc_for_ber(actual_ber)
+    results["dala_graph+flexible_refine"] = (actual_ber, ecc)
+    
+    if n <= 8:
+        fdala_clique, fdala_ber = fdala_graph(n, fdala_gamma, alloc_distribution) # fdala_gamma changed to dala_gamma
+        actual_ber = get_ber_for_allocs(fdala_clique, real_distribution, n)
+        ecc = get_ecc_for_ber(actual_ber)
+        results["fdala_graph"] = (actual_ber, ecc)
+        # 
+        fdala_clique, fdala_ber = fdala_graph(n, fdala_gamma, alloc_distribution, flexible_refine_flag=True)
+        actual_ber = get_ber_for_allocs(fdala_clique, real_distribution, n)
+        ecc = get_ecc_for_ber(actual_ber)
+        results["fdala_graph+flexible_refine"] = (actual_ber, ecc)
     
     return results
 
@@ -499,6 +557,32 @@ def run_sampled_tests(init_distr, percentage, num_sample=10):
         
     # return result_8levels, result_16levels
 
+def interchip_test(alloc_dist, real_dist, eps):
+    results8 = {}
+    
+    basic = run_interchip_basic_test(alloc_dist, real_dist, 8, eps)
+    results8.update(basic)
+    
+    graph = run_interchip_graph_test(alloc_dist, real_dist, 8, basic["dala"][2], basic["flexible_dala"][2])
+    results8.update(graph)
+
+    print(results8)
+    
+    # with open("./all_tests/"+model_filename+"_8levels_basics.json", "w") as f:
+    #     json.dump(results8, f)
+        
+    results16 = {}
+    
+    basic = run_interchip_basic_test(alloc_dist, real_dist, 16, eps)
+    results16.update(basic)
+    
+    graph = run_interchip_graph_test(alloc_dist, real_dist, 16, basic["dala"][2], basic["flexible_dala"][2])
+    results16.update(graph)
+    
+    # with open("./all_tests/"+model_filename+"_16levels_basics.json", "w") as f:
+    #     json.dump(results16, f)
+    return results8, results16
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-f", "--model_filename", type=str, help="filename for the test model file", default="retention1s.csv")
@@ -510,9 +594,62 @@ if __name__ == "__main__":
     eps = args.eps
     spec_ber = 1e-14
     
-    distributions = init_model(model_filename)
+    
+    
+    #---------------- interchip test ----------------------
+    dist50_50 = init_model("retention1smerge.csv")
+    dist90_10 = init_model("retention1s_2_dominated.csv")
+    dist10_90 = init_model("retention1s_1_dominated.csv")
+    dist100_0 = init_model("retention1s.csv")
+    dist0_100 = init_model("retention1s2.csv")
+    
+    # 0/100 for chip1
+    results8, results16 = interchip_test(dist0_100, dist100_0, eps)
+    with open("./all_tests/0-100for_chip1_8levels_basics.json", "w") as f:
+        json.dump(results8, f)
+    with open("./all_tests/0-100for_chip1_16levels_basics.json", "w") as f:
+        json.dump(results16, f)
+        
+    # 10/90 for chip1
+    results8, results16 = interchip_test(dist10_90, dist100_0, eps)
+    with open("./all_tests/10-90for_chip1_8levels_basics.json", "w") as f:
+        json.dump(results8, f)
+    with open("./all_tests/10-90for_chip1_16levels_basics.json", "w") as f:
+        json.dump(results16, f)
+    
+    # 50/50 for chip1
+    results8, results16 = interchip_test(dist50_50, dist100_0, eps)
+    with open("./all_tests/50-50for_chip1_8levels_basics.json", "w") as f:
+        json.dump(results8, f)
+    with open("./all_tests/50-50for_chip1_16levels_basics.json", "w") as f:
+        json.dump(results16, f)
+    
+    # 0/100 for chip2
+    results8, results16 = interchip_test(dist100_0, dist0_100, eps)
+    with open("./all_tests/0-100for_chip2_8levels_basics.json", "w") as f:
+        json.dump(results8, f)
+    with open("./all_tests/0-100for_chip2_16levels_basics.json", "w") as f:
+        json.dump(results16, f)
+        
+    # 10/90 for chip2
+    results8, results16 = interchip_test(dist100_0, dist10_90, eps)
+    with open("./all_tests/10-90for_chip2_8levels_basics.json", "w") as f:
+        json.dump(results8, f)
+    with open("./all_tests/10-90for_chip2_16levels_basics.json", "w") as f:
+        json.dump(results16, f)
+        
+    # 50/50 for chip2
+    results8, results16 = interchip_test(dist100_0, dist50_50, eps)
+    with open("./all_tests/50-50for_chip2_8levels_basics.json", "w") as f:
+        json.dump(results8, f)
+    with open("./all_tests/50-50for_chip2_16levels_basics.json", "w") as f:
+        json.dump(results16, f)
+        
+    
+    
     
     #---------------- sample test ----------------------
+    distributions = init_model(model_filename)
     # run_sampled_tests(distributions, 25)
     # Pros = []
     # for perc in [25, 50, 75, 90]:
@@ -523,10 +660,10 @@ if __name__ == "__main__":
     # for t in Pros:
     #     t.join()
     
-    run_sampled_tests(distributions, 25)
-    run_sampled_tests(distributions, 50)
-    run_sampled_tests(distributions, 75)
-    run_sampled_tests(distributions, 90)
+    # run_sampled_tests(distributions, 25)
+    # run_sampled_tests(distributions, 50)
+    # run_sampled_tests(distributions, 75)
+    # run_sampled_tests(distributions, 90)
     
     
     #----------------- regular test --------------------
