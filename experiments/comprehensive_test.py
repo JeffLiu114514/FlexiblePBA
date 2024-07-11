@@ -632,14 +632,14 @@ if __name__ == "__main__":
         json.dump(results16, f)
         
     # 10/90 for chip2
-    results8, results16 = interchip_test(dist100_0, dist10_90, eps)
+    results8, results16 = interchip_test(dist90_10, dist0_100, eps)
     with open("./all_tests/10-90for_chip2_8levels_basics.json", "w") as f:
         json.dump(results8, f)
     with open("./all_tests/10-90for_chip2_16levels_basics.json", "w") as f:
         json.dump(results16, f)
         
     # 50/50 for chip2
-    results8, results16 = interchip_test(dist100_0, dist50_50, eps)
+    results8, results16 = interchip_test(dist50_50, dist0_100, eps)
     with open("./all_tests/50-50for_chip2_8levels_basics.json", "w") as f:
         json.dump(results8, f)
     with open("./all_tests/50-50for_chip2_16levels_basics.json", "w") as f:
@@ -649,7 +649,7 @@ if __name__ == "__main__":
     
     
     #---------------- sample test ----------------------
-    distributions = init_model(model_filename)
+    # distributions = init_model(model_filename)
     # run_sampled_tests(distributions, 25)
     # Pros = []
     # for perc in [25, 50, 75, 90]:
