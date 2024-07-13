@@ -31,7 +31,7 @@ def update(R, anchor, xl, xh, BER):
     num_discard = int((BER - left_perc) * len(R))
     if num_discard == 0:
         return anchor, R[-1] + 1
-    return anchor, R[-num_discard-1] + 1
+    return anchor, R[-num_discard] + 1
 
 
 def linear_search_BER(specified_levels, eps, distributions, low_BER = 0, high_BER = 1):
@@ -228,16 +228,10 @@ def candidate_gen(BER, distributions):
 
 def getReadRange(vals, BER):
     # The read range [Rmin, Rmax) -- any point within [Rmin, Rmax) are within this level
-    # num_discard = int(BER * len(vals) / 2)
-    # if num_discard == 0:
-    #     return vals[num_discard], vals[-1] + 1
-    # return vals[num_discard], vals[-num_discard] + 1
-    total_num_discard = int(BER * len(vals))
-    if total_num_discard % 2 == 0:
-        num_discard_front, num_discard_back = int(total_num_discard / 2), int(total_num_discard / 2)
-    else:
-        num_discard_front, num_discard_back = int(total_num_discard / 2) + 1, int(total_num_discard / 2)
-    return vals[num_discard_front], vals[-num_discard_back-1] + 1
+    num_discard = int(BER * len(vals))
+    if num_discard == 0:
+        return vals[0], vals[-1] + 1
+    return vals[0], vals[-num_discard] + 1
 
 
 def refine(level_alloc):

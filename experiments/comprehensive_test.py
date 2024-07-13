@@ -598,17 +598,17 @@ if __name__ == "__main__":
     
     #---------------- interchip test ----------------------
     dist50_50 = init_model("retention1smerge.csv")
-    dist90_10 = init_model("retention1s_2_dominated.csv")
-    dist10_90 = init_model("retention1s_1_dominated.csv")
+    dist90_10 = init_model("retention1s_1_dominated.csv")
+    dist10_90 = init_model("retention1s_2_dominated.csv")
     dist100_0 = init_model("retention1s.csv")
     dist0_100 = init_model("retention1s2.csv")
     
-    # 0/100 for chip1
-    results8, results16 = interchip_test(dist0_100, dist100_0, eps)
-    with open("./all_tests/0-100for_chip1_8levels_basics.json", "w") as f:
-        json.dump(results8, f)
-    with open("./all_tests/0-100for_chip1_16levels_basics.json", "w") as f:
-        json.dump(results16, f)
+    # # 0/100 for chip1
+    # results8, results16 = interchip_test(dist0_100, dist100_0, eps)
+    # with open("./all_tests/0-100for_chip1_8levels_basics.json", "w") as f:
+    #     json.dump(results8, f)
+    # with open("./all_tests/0-100for_chip1_16levels_basics.json", "w") as f:
+    #     json.dump(results16, f)
         
     # 10/90 for chip1
     results8, results16 = interchip_test(dist10_90, dist100_0, eps)
@@ -617,19 +617,19 @@ if __name__ == "__main__":
     with open("./all_tests/10-90for_chip1_16levels_basics.json", "w") as f:
         json.dump(results16, f)
     
-    # 50/50 for chip1
-    results8, results16 = interchip_test(dist50_50, dist100_0, eps)
-    with open("./all_tests/50-50for_chip1_8levels_basics.json", "w") as f:
-        json.dump(results8, f)
-    with open("./all_tests/50-50for_chip1_16levels_basics.json", "w") as f:
-        json.dump(results16, f)
+    # # 50/50 for chip1
+    # results8, results16 = interchip_test(dist50_50, dist100_0, eps)
+    # with open("./all_tests/50-50for_chip1_8levels_basics.json", "w") as f:
+    #     json.dump(results8, f)
+    # with open("./all_tests/50-50for_chip1_16levels_basics.json", "w") as f:
+    #     json.dump(results16, f)
     
-    # 0/100 for chip2
-    results8, results16 = interchip_test(dist100_0, dist0_100, eps)
-    with open("./all_tests/0-100for_chip2_8levels_basics.json", "w") as f:
-        json.dump(results8, f)
-    with open("./all_tests/0-100for_chip2_16levels_basics.json", "w") as f:
-        json.dump(results16, f)
+    # # 0/100 for chip2
+    # results8, results16 = interchip_test(dist100_0, dist0_100, eps)
+    # with open("./all_tests/0-100for_chip2_8levels_basics.json", "w") as f:
+    #     json.dump(results8, f)
+    # with open("./all_tests/0-100for_chip2_16levels_basics.json", "w") as f:
+    #     json.dump(results16, f)
         
     # 10/90 for chip2
     results8, results16 = interchip_test(dist90_10, dist0_100, eps)
@@ -638,12 +638,12 @@ if __name__ == "__main__":
     with open("./all_tests/10-90for_chip2_16levels_basics.json", "w") as f:
         json.dump(results16, f)
         
-    # 50/50 for chip2
-    results8, results16 = interchip_test(dist50_50, dist0_100, eps)
-    with open("./all_tests/50-50for_chip2_8levels_basics.json", "w") as f:
-        json.dump(results8, f)
-    with open("./all_tests/50-50for_chip2_16levels_basics.json", "w") as f:
-        json.dump(results16, f)
+    # # 50/50 for chip2
+    # results8, results16 = interchip_test(dist50_50, dist0_100, eps)
+    # with open("./all_tests/50-50for_chip2_8levels_basics.json", "w") as f:
+    #     json.dump(results8, f)
+    # with open("./all_tests/50-50for_chip2_16levels_basics.json", "w") as f:
+    #     json.dump(results16, f)
         
     
     
@@ -667,6 +667,7 @@ if __name__ == "__main__":
     
     
     #----------------- regular test --------------------
+    # distributions = init_model(model_filename)
     # results8 = {}
     
     # basic = run_basic_test(distributions, 8, eps)
