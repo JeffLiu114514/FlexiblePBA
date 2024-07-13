@@ -4,7 +4,7 @@ This repository contains the code and resources related to our research paper ti
 
 ## Run Instructions
 
-The major test script is experiments/comprehensive_test.py. Please follow the comments in main to decide what tests are run. Results are saved under experiments/all_tests/
+The major test script is experiments/comprehensive_test.py. Please follow the comments in main to decide what tests are run. Results are saved under experiments/all_tests/. Results are generally saved in JSON format with each key being the method tested, values[0] being raw Bit-Error-Rate(BER), values[1] being ECC overhead, and values[2] being minimum gamma(if applicable).
 
 ## Directory Structure
 
