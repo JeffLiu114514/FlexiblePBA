@@ -587,14 +587,51 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-f", "--model_filename", type=str, help="filename for the test model file", default="retention1s.csv")
     # parser.add_argument("-n", "--num_levels", type=int, help="number of allocation levels", default=8)
-    parser.add_argument("-e", "--eps", type=float, help="minimum granularity for gamma", default=1e-3)
+    parser.add_argument("-e", "--eps", type=float, help="minimum granularity for gamma", default=1e-6)
     args = parser.parse_args()
     model_filename = args.model_filename
     # num_levels = args.num_levels
     eps = args.eps
     spec_ber = 1e-14
+
     
+    #----------------- regular test --------------------
+    distributions = init_model(model_filename)
+    results8 = {}
     
+    basic = run_basic_test(distributions, 8, eps)
+    results8.update(basic)
+    
+    graph = run_graph_test(distributions, 8, basic["dala"][2], basic["flexible_dala"][2])
+    results8.update(graph)
+
+    print(results8)
+    
+    with open("./all_tests/"+model_filename+"_8levels_basics.json", "w") as f:
+        json.dump(results8, f)
+        
+    results16 = {}
+    
+    basic = run_basic_test(distributions, 16, eps)
+    results16.update(basic)
+    
+    graph = run_graph_test(distributions, 16, basic["dala"][2], basic["flexible_dala"][2])
+    results16.update(graph)
+    
+    with open("./all_tests/"+model_filename+"_16levels_basics.json", "w") as f:
+        json.dump(results16, f)
+
+
+  
+    #---------------- sample test ----------------------
+    distributions = init_model(model_filename)
+    
+    run_sampled_tests(distributions, 25)
+    run_sampled_tests(distributions, 50)
+    run_sampled_tests(distributions, 75)
+    run_sampled_tests(distributions, 90)
+
+  
     
     #---------------- interchip test ----------------------
     dist50_50 = init_model("retention1smerge.csv")
@@ -603,12 +640,12 @@ if __name__ == "__main__":
     dist100_0 = init_model("retention1s.csv")
     dist0_100 = init_model("retention1s2.csv")
     
-    # # 0/100 for chip1
-    # results8, results16 = interchip_test(dist0_100, dist100_0, eps)
-    # with open("./all_tests/0-100for_chip1_8levels_basics.json", "w") as f:
-    #     json.dump(results8, f)
-    # with open("./all_tests/0-100for_chip1_16levels_basics.json", "w") as f:
-    #     json.dump(results16, f)
+    # 0/100 for chip1
+    results8, results16 = interchip_test(dist0_100, dist100_0, eps)
+    with open("./all_tests/0-100for_chip1_8levels_basics.json", "w") as f:
+        json.dump(results8, f)
+    with open("./all_tests/0-100for_chip1_16levels_basics.json", "w") as f:
+        json.dump(results16, f)
         
     # 10/90 for chip1
     results8, results16 = interchip_test(dist10_90, dist100_0, eps)
@@ -617,19 +654,19 @@ if __name__ == "__main__":
     with open("./all_tests/10-90for_chip1_16levels_basics.json", "w") as f:
         json.dump(results16, f)
     
-    # # 50/50 for chip1
-    # results8, results16 = interchip_test(dist50_50, dist100_0, eps)
-    # with open("./all_tests/50-50for_chip1_8levels_basics.json", "w") as f:
-    #     json.dump(results8, f)
-    # with open("./all_tests/50-50for_chip1_16levels_basics.json", "w") as f:
-    #     json.dump(results16, f)
+    # 50/50 for chip1
+    results8, results16 = interchip_test(dist50_50, dist100_0, eps)
+    with open("./all_tests/50-50for_chip1_8levels_basics.json", "w") as f:
+        json.dump(results8, f)
+    with open("./all_tests/50-50for_chip1_16levels_basics.json", "w") as f:
+        json.dump(results16, f)
     
-    # # 0/100 for chip2
-    # results8, results16 = interchip_test(dist100_0, dist0_100, eps)
-    # with open("./all_tests/0-100for_chip2_8levels_basics.json", "w") as f:
-    #     json.dump(results8, f)
-    # with open("./all_tests/0-100for_chip2_16levels_basics.json", "w") as f:
-    #     json.dump(results16, f)
+    # 0/100 for chip2
+    results8, results16 = interchip_test(dist100_0, dist0_100, eps)
+    with open("./all_tests/0-100for_chip2_8levels_basics.json", "w") as f:
+        json.dump(results8, f)
+    with open("./all_tests/0-100for_chip2_16levels_basics.json", "w") as f:
+        json.dump(results16, f)
         
     # 10/90 for chip2
     results8, results16 = interchip_test(dist90_10, dist0_100, eps)
@@ -638,67 +675,11 @@ if __name__ == "__main__":
     with open("./all_tests/10-90for_chip2_16levels_basics.json", "w") as f:
         json.dump(results16, f)
         
-    # # 50/50 for chip2
-    # results8, results16 = interchip_test(dist50_50, dist0_100, eps)
-    # with open("./all_tests/50-50for_chip2_8levels_basics.json", "w") as f:
-    #     json.dump(results8, f)
-    # with open("./all_tests/50-50for_chip2_16levels_basics.json", "w") as f:
-    #     json.dump(results16, f)
-        
-    
-    
-    
-    #---------------- sample test ----------------------
-    # distributions = init_model(model_filename)
-    # run_sampled_tests(distributions, 25)
-    # Pros = []
-    # for perc in [25, 50, 75, 90]:
-    #     p = multiprocessing.Process(target=run_sampled_tests, args=(distributions, perc))
-    #     Pros.append(p)
-    #     p.start()
-    
-    # for t in Pros:
-    #     t.join()
-    
-    # run_sampled_tests(distributions, 25)
-    # run_sampled_tests(distributions, 50)
-    # run_sampled_tests(distributions, 75)
-    # run_sampled_tests(distributions, 90)
-    
-    
-    #----------------- regular test --------------------
-    # distributions = init_model(model_filename)
-    # results8 = {}
-    
-    # basic = run_basic_test(distributions, 8, eps)
-    # results8.update(basic)
-    
-    # graph = run_graph_test(distributions, 8, basic["dala"][2], basic["flexible_dala"][2])
-    # results8.update(graph)
-    
-    # # dala_relaxation = run_graph_relaxation_test_dala(distributions, 8, basic["dala"][2])#, True, basic["flexible_dala"][2]
-    # # results8.update(dala_relaxation)
-    
-    # # fdala_relaxation = run_graph_relaxation_test_fdala(distributions, 8, basic["flexible_dala"][2])
-    # # results8.update(fdala_relaxation)
-
-    # print(results8)
-    
-    # with open("./all_tests/"+model_filename+"_8levels_basics.json", "w") as f:
-    #     json.dump(results8, f)
-        
-    # results16 = {}
-    
-    # basic = run_basic_test(distributions, 16, eps)
-    # results16.update(basic)
-    
-    # graph = run_graph_test(distributions, 16, basic["dala"][2], basic["flexible_dala"][2])
-    # results16.update(graph)
-    
-    # # dala_relaxation = run_graph_relaxation_test_dala(distributions, 16, basic["dala"][2])
-    # # results16.update(dala_relaxation)
-    
-    # with open("./all_tests/"+model_filename+"_16levels_basics.json", "w") as f:
-    #     json.dump(results16, f)
+    # 50/50 for chip2
+    results8, results16 = interchip_test(dist50_50, dist0_100, eps)
+    with open("./all_tests/50-50for_chip2_8levels_basics.json", "w") as f:
+        json.dump(results8, f)
+    with open("./all_tests/50-50for_chip2_16levels_basics.json", "w") as f:
+        json.dump(results16, f)
     
     
