@@ -20,12 +20,12 @@ The repository is organized as follows:\
 ├── settings/ # Contains different bits-per-cell(bpc) settings.\
 ├── tests/ # Contains our test results archived.\
 ├── README.md # This README file\
-└── FPBA-appendix-vF.pdf # The Appendix of our submitted paper.\
+└── FPBA-appendix-vF.pdf # The Appendix of our submitted paper.
 
 ## Acknowledgements
 
 We would like to thank the authors of the citation[29] in the FPBA paper for making their code and results public, which greatly assisted our research. 
-- Specific files/folders we used:
-  - relaxation model data(https://github.com/JeffLiu114514/FlexiblePBA/tree/main/model)
-  - bpc settings(https://github.com/JeffLiu114514/FlexiblePBA/tree/main/settings)
-  - dala.py
+- Specific scripts/folders we used:
+  - [relaxation model data](https://github.com/JeffLiu114514/FlexiblePBA/tree/main/model)
+  - [bpc settings](https://github.com/JeffLiu114514/FlexiblePBA/tree/main/settings)
+  - [dala.py](https://github.com/JeffLiu114514/FlexiblePBA/blob/main/experiments/dala.py), [dala_genmatrix.py](https://github.com/JeffLiu114514/FlexiblePBA/blob/main/experiments/dala_genmatrix.py), [ecc.py](https://github.com/JeffLiu114514/FlexiblePBA/blob/main/experiments/ecc.py), [trans.py](https://github.com/JeffLiu114514/FlexiblePBA/blob/main/experiments/trans.py) under experiments/
