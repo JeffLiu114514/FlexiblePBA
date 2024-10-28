@@ -24,7 +24,7 @@ The repository is organized as follows:\
 
 ## Acknowledgements
 
-We would like to thank the authors of the citation[29] in the FPBA paper for making their code and results public, which greatly assisted our research. 
+We would like to thank the authors of the citation[29] in the FPBA paper ([PBA: Percentile-Based Level Allocation for Multiple-Bits-Per-Cell RRAM](https://github.com/Anjiang-Wei/PBA)) for making their code and results public, which greatly assisted our research. 
 - Specific scripts/folders we used:
   - [relaxation model data](https://github.com/JeffLiu114514/FlexiblePBA/tree/main/model)
   - [bpc settings](https://github.com/JeffLiu114514/FlexiblePBA/tree/main/settings)
