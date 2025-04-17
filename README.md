@@ -1,6 +1,6 @@
 # FPBA: Flexible Percentile-Based Allocation
 
-This repository contains the code and resources related to our research paper titled "FPBA: Flexible Percentile-Based Allocation for Multiple-Bits-Per-Cell RRAM", submitted as part of the ASP-DAC 2025 submission.
+This repository contains the code and resources related to our research paper titled "FPBA: Flexible Percentile-Based Allocation for Multiple-Bits-Per-Cell RRAM", published at the ASP-DAC 2025.
 
 ## Run Instructions
 
