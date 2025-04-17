@@ -29,3 +29,23 @@ We would like to thank the authors of the citation[29] in the FPBA paper ([PBA: 
   - [relaxation model data](https://github.com/JeffLiu114514/FlexiblePBA/tree/main/model)
   - [bpc settings](https://github.com/JeffLiu114514/FlexiblePBA/tree/main/settings)
   - [dala.py](https://github.com/JeffLiu114514/FlexiblePBA/blob/main/experiments/dala.py), [dala_genmatrix.py](https://github.com/JeffLiu114514/FlexiblePBA/blob/main/experiments/dala_genmatrix.py), [ecc.py](https://github.com/JeffLiu114514/FlexiblePBA/blob/main/experiments/ecc.py), [trans.py](https://github.com/JeffLiu114514/FlexiblePBA/blob/main/experiments/trans.py) under experiments/
+
+## Citations
+
+```TeX
+@inproceedings{10.1145/3658617.3697569,
+author = {Liu, Junfei and Kahng, Anson},
+title = {FPBA: Flexible Percentile-Based Allocation for Multiple-Bits-Per-Cell RRAM},
+year = {2025},
+isbn = {9798400706356},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/3658617.3697569},
+doi = {10.1145/3658617.3697569},
+booktitle = {Proceedings of the 30th Asia and South Pacific Design Automation Conference},
+pages = {1202–1208},
+numpages = {7},
+location = {Tokyo, Japan},
+series = {ASPDAC '25}
+}
+```
